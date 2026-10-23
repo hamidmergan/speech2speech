@@ -55,8 +55,8 @@ def test_a_failing_model_answers_502(client, models):
 
 def test_a_long_sentence_still_goes_through_whole(client, models):
     """A spoken sentence may run to the cap, and all of it has to reach the model."""
-    text = "Ich erklaere Ihnen jetzt den Weg zum Pruefungsamt. " * 39
-    assert 1900 < len(text) <= 2000, "a sentence right at the cap, not a short one"
+    text = "Ich erklaere Ihnen jetzt den Weg zum Pruefungsamt. " * 78
+    assert 3900 < len(text) <= 4000, "a sentence right at the cap, not a short one"
 
     r = client.post("/interpreter/translate", json={"text": text, "target_lang": "EN-US"})
 
@@ -66,7 +66,27 @@ def test_a_long_sentence_still_goes_through_whole(client, models):
 
 
 def test_a_sentence_past_the_cap_is_refused_not_cut(client, models):
-    r = client.post("/interpreter/translate", json={"text": "a" * 2001, "target_lang": "EN-US"})
+    r = client.post("/interpreter/translate", json={"text": "a" * 4001, "target_lang": "EN-US"})
 
     assert r.status_code == 422
     assert models.chat_requests == [], "nothing is sent on half"
+
+
+def test_a_sentence_that_can_be_stored_can_also_be_translated(client, models):
+    """The store took 4000 characters while translate stopped at 2000, so a long
+    spoken turn was saved and then never translatable."""
+    text = "Guten Tag und herzlich willkommen bei uns im Haus. " * 59
+    assert 2000 < len(text) <= 4000
+
+    sid = client.post("/interpreter/sessions", json={}).json()["id"]
+    stored = client.put(
+        f"/interpreter/sessions/{sid}/turns/t1",
+        json={"side": "left", "source": "spoken", "original": text,
+              "translation": "", "status": "done", "edited": False, "at": 1000},
+    )
+    assert stored.status_code == 200, stored.text
+    assert stored.json()["original"] == text
+
+    r = client.post("/interpreter/translate", json={"text": text, "target_lang": "EN-US"})
+    assert r.status_code == 200, r.text
+    assert models.chat_requests[-1]["messages"][1]["content"] == text.strip()

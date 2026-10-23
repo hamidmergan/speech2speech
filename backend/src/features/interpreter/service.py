@@ -73,7 +73,10 @@ def save_turn(session: dict, turn: dict, locale: str) -> dict:
         return {"id": turn["id"], "deleted": True}
     if _chars_without(session["id"], turn["id"]) + len(turn["original"]) > session_char_limit():
         raise HTTPException(status_code=409, detail=t("interpreter.full", locale))
-    return _turn_out(repo.upsert_turn(session["id"], turn))
+    try:
+        return _turn_out(repo.upsert_turn(session["id"], turn))
+    except repo.TurnBelongsElsewhere as e:
+        raise HTTPException(status_code=409, detail=t("interpreter.turnElsewhere", locale)) from e
 
 
 def _unwrap(raw: str) -> str:

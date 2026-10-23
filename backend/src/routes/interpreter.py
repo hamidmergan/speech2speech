@@ -3,7 +3,7 @@
 import re
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Response, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -23,26 +23,40 @@ from src.utils.text import sanitize_pasted_text
 
 router = APIRouter(tags=["interpreter"])
 
-# A spoken sentence, not a document.
-MAX_CHARS = 2000
+# A spoken sentence, not a document. The same ceiling everywhere, so a sentence
+# that was stored can always be translated and read aloud as well.
+MAX_CHARS = 4000
+# A language code such as "EN-US", never a sentence.
+MAX_LANG_CHARS = 16
+# An id the page made up, long enough for a UUID and for a timestamp plus suffix.
+MAX_ID_CHARS = 64
+# SQLite stores an integer in eight bytes. A Python int has no such ceiling, and
+# anything past this one would raise OverflowError in the middle of a write.
+MAX_SQLITE_INT = 2**63 - 1
+
 Side = Literal["left", "right"]
+
+
+def id_path():
+    """A bounded id in the URL. An id goes straight into the database."""
+    return Path(min_length=1, max_length=MAX_ID_CHARS)
 
 
 class Sentence(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_CHARS)
-    target_lang: str
+    target_lang: str = Field(max_length=MAX_LANG_CHARS)
 
 
 class SessionIn(BaseModel):
-    left_lang: str = "DE"
-    right_lang: str = "EN-US"
+    left_lang: str = Field(default="DE", max_length=MAX_LANG_CHARS)
+    right_lang: str = Field(default="EN-US", max_length=MAX_LANG_CHARS)
     left_name: str = Field(default="", max_length=80)
     right_name: str = Field(default="", max_length=80)
 
 
 class SessionPatch(BaseModel):
-    left_lang: str | None = None
-    right_lang: str | None = None
+    left_lang: str | None = Field(default=None, max_length=MAX_LANG_CHARS)
+    right_lang: str | None = Field(default=None, max_length=MAX_LANG_CHARS)
     left_name: str | None = Field(default=None, max_length=80)
     right_name: str | None = Field(default=None, max_length=80)
     ended: bool | None = None
@@ -51,16 +65,16 @@ class SessionPatch(BaseModel):
 class TurnIn(BaseModel):
     side: Side
     source: Literal["spoken", "typed"] = "spoken"
-    original: str = Field(max_length=4000)
-    translation: str = Field(default="", max_length=4000)
+    original: str = Field(max_length=MAX_CHARS)
+    translation: str = Field(default="", max_length=MAX_CHARS)
     status: Literal["translating", "done", "failed"] = "done"
     edited: bool = False
-    at: int
+    at: int = Field(ge=0, le=MAX_SQLITE_INT)
 
 
 class SpeakIn(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_CHARS)
-    lang: str
+    lang: str = Field(max_length=MAX_LANG_CHARS)
 
 
 def translate_text(body: Sentence, locale: str):
@@ -104,7 +118,7 @@ _LANGUAGE = re.compile(r"^[a-z]{2}$")
 @router.post("/interpreter/transcribe")
 async def transcribe_window(
     audio: UploadFile = File(...),
-    language: str | None = Form(None),
+    language: str | None = Form(None, max_length=MAX_LANG_CHARS),
     locale: str = Depends(get_locale),
 ):
     lang = language.strip().lower() if language else None
@@ -166,7 +180,7 @@ def list_sessions():
 
 @router.get("/interpreter/sessions/{session_id}")
 def get_session(
-    session_id: str,
+    session_id: str = id_path(),
     locale: str = Depends(get_locale),
 ):
     return service.state(_known(session_id, locale))
@@ -174,8 +188,8 @@ def get_session(
 
 @router.patch("/interpreter/sessions/{session_id}")
 def patch_session(
-    session_id: str,
     body: SessionPatch,
+    session_id: str = id_path(),
     locale: str = Depends(get_locale),
 ):
     session = _known(session_id, locale)
@@ -191,7 +205,7 @@ def patch_session(
 
 @router.delete("/interpreter/sessions/{session_id}", status_code=204)
 def delete_session(
-    session_id: str,
+    session_id: str = id_path(),
     locale: str = Depends(get_locale),
 ):
     if not repo.delete_session(session_id):
@@ -200,9 +214,9 @@ def delete_session(
 
 @router.put("/interpreter/sessions/{session_id}/turns/{turn_id}")
 def put_turn(
-    session_id: str,
-    turn_id: str,
     body: TurnIn,
+    session_id: str = id_path(),
+    turn_id: str = id_path(),
     locale: str = Depends(get_locale),
 ):
     session = _known(session_id, locale)

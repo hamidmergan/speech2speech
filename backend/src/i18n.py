@@ -35,6 +35,10 @@ MESSAGES: dict[str, dict[str, str]] = {
         "de": "Das Gespräch ist voll. Starte ein neues Gespräch.",
         "en": "This conversation is full. Start a new one.",
     },
+    "interpreter.turnElsewhere": {
+        "de": "Dieser Satz gehört zu einem anderen Gespräch.",
+        "en": "This sentence belongs to another conversation.",
+    },
     "interpreter.sessionUnknown": {
         "de": "Dieses Gespräch gibt es nicht.",
         "en": "This conversation does not exist.",
@@ -92,7 +96,8 @@ def parse_accept_language(header: str | None) -> str:
 
 async def get_locale(
     accept_language: str | None = Header(default=None),
-    lang: str | None = Query(default=None),
+    # A locale code, never a sentence. Bounded like every other value from outside.
+    lang: str | None = Query(default=None, max_length=16),
 ) -> str:
     """FastAPI dependency: resolve the locale from `?lang=` or Accept-Language."""
     if lang and lang in SUPPORTED_LOCALES:

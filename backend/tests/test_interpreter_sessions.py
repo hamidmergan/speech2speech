@@ -175,3 +175,19 @@ def test_a_failing_speech_model_answers_502(client, models):
     models.fail_paths.add("/v1/audio/transcriptions")
     r = client.post("/interpreter/transcribe", files={"audio": ("window.webm", BytesIO(WEBM), "audio/webm")})
     assert r.status_code == 502
+
+
+def test_a_turn_id_of_another_conversation_is_refused(client):
+    """Without accounts every conversation shares one id space, so an id from
+    conversation B must not move B's sentence into A."""
+    a = client.post("/interpreter/sessions", json={"left_name": "A"}).json()["id"]
+    b = client.post("/interpreter/sessions", json={"left_name": "B"}).json()["id"]
+    client.put(f"/interpreter/sessions/{b}/turns/shared", json=_turn("left", "Sentence of B"))
+
+    r = client.put(f"/interpreter/sessions/{a}/turns/shared", json=_turn("right", "Stolen"))
+
+    assert r.status_code == 409, r.text
+    # B keeps its sentence unchanged, and A never got one.
+    kept = client.get(f"/interpreter/sessions/{b}").json()["turns"]
+    assert [(t["original"], t["side"]) for t in kept] == [("Sentence of B", "left")]
+    assert client.get(f"/interpreter/sessions/{a}").json()["turns"] == []

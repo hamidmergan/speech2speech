@@ -9,6 +9,10 @@ from src.limits import max_sessions
 
 SESSION_FIELDS = ("left_lang", "right_lang", "left_name", "right_name", "ended_at")
 
+
+class TurnBelongsElsewhere(Exception):
+    """This turn id is already in use by another conversation."""
+
 # The timestamp columns are text in SQLite, read back as datetime so the callers
 # see the same values they would get from any other database.
 _TIMESTAMPS = ("created_at", "updated_at", "ended_at")
@@ -107,7 +111,12 @@ def delete_session(session_id: str) -> bool:
 
 
 def upsert_turn(session_id: str, turn: dict) -> dict:
-    """Writes a sentence as a whole, a repeated write replaces text, translation and status."""
+    """Writes a sentence as a whole, a repeated write replaces text, translation and status.
+
+    There are no accounts, so every conversation on the installation shares one id
+    space. The update is therefore scoped to this conversation: a sentence of
+    another conversation is never overwritten and never handed back as this one.
+    """
     now_text = now().isoformat()
     with get_connection() as conn:
         conn.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (now_text, session_id))
@@ -121,15 +130,23 @@ def upsert_turn(session_id: str, turn: dict) -> dict:
                    translation = excluded.translation,
                    status = excluded.status,
                    edited = excluded.edited,
-                   updated_at = excluded.updated_at""",
+                   updated_at = excluded.updated_at
+               WHERE turns.session_id = excluded.session_id""",
             (
                 turn["id"], session_id, turn["side"], turn["source"], turn["original"],
                 turn["translation"], turn["status"], int(turn["edited"]), turn["at"],
                 now_text, now_text,
             ),
         )
+        row = conn.execute(
+            "SELECT * FROM turns WHERE id = ? AND session_id = ?", (turn["id"], session_id),
+        ).fetchone()
+        if row is None:
+            # The id belongs to another conversation. Nothing of this request is
+            # kept, the rollback in get_connection also undoes the stamp above.
+            raise TurnBelongsElsewhere(turn["id"])
         conn.commit()
-        return _row(conn.execute("SELECT * FROM turns WHERE id = ?", (turn["id"],)).fetchone())
+        return _row(row)
 
 
 def delete_turn(session_id: str, turn_id: str) -> None:
