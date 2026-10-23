@@ -37,7 +37,7 @@ sentences can be corrected afterwards.
       limits, password protection.
 - [x] 3 Frontend: the conversation page, recording, two sides, history, read aloud.
 - [x] 4 `docker compose up`, a conversation held in the browser against real models.
-- [ ] 5 README and CHANGELOG.
+- [x] 5 README and CHANGELOG.
 - [ ] 6 English sweep, final commit.
 
 ## Open
