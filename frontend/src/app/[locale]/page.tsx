@@ -80,7 +80,12 @@ export default function InterpreterPage() {
   const onTurn = useCallback((turn: Turn) => mirror.push(turn), [mirror]);
 
   const langOf = useCallback((side: Side) => langsRef.current[side], []);
-  const active = useConversation({ langOf, charLimit: installation.sessionCharLimit, onTurn });
+  const active = useConversation({
+    langOf,
+    charLimit: installation.sessionCharLimit,
+    maxAudioBytes: installation.maxAudioBytes,
+    onTurn,
+  });
 
   // --- reading a translation aloud -------------------------------------------------------------
 

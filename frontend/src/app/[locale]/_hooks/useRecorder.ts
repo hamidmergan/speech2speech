@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { transcribeWindow } from "../_api";
-import { recordingPhase } from "../_limits";
+import { audioFits, recordingPhase } from "../_limits";
 import { createVoiceMeter, type VoiceMeter } from "../_voiceActivity";
 
-export type RecorderError = "mic" | "stt";
+export type RecorderError = "mic" | "stt" | "tooLarge";
 
 export interface RecordingSession {
   /** The language spoken into this microphone, so the model does not have to guess it. */
   language: string;
+  /** Largest recording one request may carry, from the installation. */
+  maxBytes: number;
   /** The transcript of everything recorded so far, a few seconds behind the voice. */
   onPartial: (text: string) => void;
   /** The transcript of the whole recording, empty when nothing was understood. */
@@ -34,6 +36,9 @@ const QUIET_HINT_MS = 8000;
 /** After this much silence the recording stops by itself. */
 const SILENCE_STOP_MS = 30000;
 const MIME_TYPES = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+
+/** A recording too large for one request. Thrown instead of being sent and refused. */
+class TooLarge extends Error {}
 
 function pickMime(): string {
   if (typeof MediaRecorder === "undefined") return "";
@@ -73,6 +78,9 @@ function record(stream: MediaStream, session: RecordingSession): Handle {
 
   const transcribe = async () => {
     const blob = new Blob(chunks, mime ? { type: mime } : undefined);
+    // A recording past the ceiling never leaves the device. The server would refuse
+    // it too, but only after the whole upload, and that reads as a hang.
+    if (!audioFits(blob.size, session.maxBytes)) throw new TooLarge();
     return blob.size > 0 ? transcribeWindow(blob, filename, session.language) : "";
   };
 
@@ -86,8 +94,17 @@ function record(stream: MediaStream, session: RecordingSession): Handle {
     try {
       const text = await transcribe();
       if (!cancelled && !finalRequested) session.onPartial(text);
-    } catch {
-      if (!cancelled && !finalRequested) session.onError("stt");
+    } catch (e) {
+      if (!cancelled && !finalRequested) {
+        if (e instanceof TooLarge) {
+          // Nothing more can be sent, so the recording ends here and says why.
+          session.onError("tooLarge");
+          session.onAutoStop();
+          recorder.stop();
+          return;
+        }
+        session.onError("stt");
+      }
     } finally {
       windowInFlight = false;
       if (!cancelled && !finalRequested && dirty) void sendWindow();
@@ -104,9 +121,9 @@ function record(stream: MediaStream, session: RecordingSession): Handle {
     try {
       const text = await transcribe();
       if (!cancelled) session.onFinal(text);
-    } catch {
+    } catch (e) {
       if (cancelled) return;
-      session.onError("stt");
+      session.onError(e instanceof TooLarge ? "tooLarge" : "stt");
       session.onFinal("");
     }
   };

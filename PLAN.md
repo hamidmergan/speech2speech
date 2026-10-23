@@ -36,7 +36,7 @@ sentences can be corrected afterwards.
 - [x] 2 Backend tests against a fake model server: sessions, correcting sentences,
       limits, password protection.
 - [x] 3 Frontend: the conversation page, recording, two sides, history, read aloud.
-- [ ] 4 `docker compose up`, a conversation held in the browser against real models.
+- [x] 4 `docker compose up`, a conversation held in the browser against real models.
 - [ ] 5 README and CHANGELOG.
 - [ ] 6 English sweep, final commit.
 
@@ -49,6 +49,11 @@ sentences can be corrected afterwards.
 - Only the pair German and English is offered. Both the language codes and the
   texts inside the two cards are a fixed pair, so a third language is more than
   one more entry in a list.
+- A recording past MAX_AUDIO_BYTES is now refused in the browser as well, not only
+  by the server. The server answers 413 straight away, but the page's own proxy
+  carries the whole upload before that answer reaches the browser, and a 33 MB
+  upload therefore sat there as if the page had frozen. The recording never leaves
+  the device now, the card says the recording grew too long, and nothing is cut.
 - The shell's stylesheet came with the classes of features that are not here. A
   test guards that no class is defined without a user, so those blocks were taken
   out one by one: the citation chips, the source rows, the mind map palette, the

@@ -45,6 +45,19 @@ export function charState(chars: number, limit: number = SESSION_CHAR_LIMIT): Ch
   return "ok";
 }
 
+/**
+ * Whether this recording still fits into one request. The ceiling is the
+ * installation's MAX_AUDIO_BYTES, reported under GET /config.
+ *
+ * Checked in the browser as well, not only on the server: every window resends
+ * the whole audio so far, and a request the page's own proxy has to carry whole
+ * before the server can refuse it leaves the person in front of a spinner. A
+ * recording that does not fit is said out loud, never cut and never retried.
+ */
+export function audioFits(bytes: number, maxBytes: number): boolean {
+  return bytes <= maxBytes;
+}
+
 /** How many conversations stay, the one untouched longest drops out. */
 export const MAX_SESSIONS = 100;
 

@@ -25,6 +25,7 @@ export interface CardTexts {
   waiting: (name: string) => string;
   ended: string;
   micDenied: string;
+  tooLong: string;
   sttFailed: string;
   nothingHeard: string;
   transcribing: string;
@@ -61,6 +62,7 @@ export const CARD_TEXTS: Record<LangCode, CardTexts> = {
     waiting: (name) => `${name} spricht gerade. Sprechen übernimmt das Wort.`,
     ended: "Gespräch beendet.",
     micDenied: "Das Mikrofon ist nicht freigegeben.",
+    tooLong: "Die Aufnahme ist zu lang geworden und wurde beendet. Nichts davon wurde abgeschnitten, sprich den Satz bitte noch einmal.",
     sttFailed: "Die Spracherkennung ist gerade nicht möglich.",
     nothingHeard: "Nichts verstanden, bitte noch einmal.",
     transcribing: "Erkenne Text",
@@ -95,6 +97,7 @@ export const CARD_TEXTS: Record<LangCode, CardTexts> = {
     waiting: (name) => `${name} is speaking. Speak takes over.`,
     ended: "Conversation ended.",
     micDenied: "The microphone is not allowed.",
+    tooLong: "The recording grew too long and has stopped. Nothing of it was cut away, please say the sentence again.",
     sttFailed: "Speech recognition is not available right now.",
     nothingHeard: "Nothing understood, please try again.",
     transcribing: "Recognising text",

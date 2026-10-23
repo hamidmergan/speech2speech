@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CHAR_WARN_AT,
+  audioFits,
   ENDING_SOON_MS,
   MAX_RECORDING_MS,
   MAX_SESSIONS,
@@ -83,5 +84,17 @@ describe("Grenze aus der Installation", () => {
   it("warnt bei der eingebauten Grenze ab achtzehntausend", () => {
     expect(warnAt()).toBe(CHAR_WARN_AT);
     expect(warnAt()).toBe(18_000);
+  });
+});
+
+describe("Groesse einer Aufnahme", () => {
+  it("laesst alles bis zur Grenze durch", () => {
+    expect(audioFits(0, 1000)).toBe(true);
+    expect(audioFits(1000, 1000)).toBe(true);
+  });
+
+  it("lehnt ab, was darueber liegt", () => {
+    expect(audioFits(1001, 1000)).toBe(false);
+    expect(audioFits(33_000_000, 30 * 1024 * 1024)).toBe(false);
   });
 });

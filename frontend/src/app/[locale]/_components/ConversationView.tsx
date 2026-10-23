@@ -117,7 +117,10 @@ export default function ConversationView(p: Props) {
     if (p.recording) return x.waiting(p.names[p.recording]);
     if (p.ended) return x.ended;
     if (p.notice && p.notice.side === side) {
-      return p.notice.kind === "mic" ? x.micDenied : p.notice.kind === "stt" ? x.sttFailed : x.nothingHeard;
+      if (p.notice.kind === "mic") return <span className="text-error">{x.micDenied}</span>;
+      if (p.notice.kind === "tooLarge") return <span className="text-error">{x.tooLong}</span>;
+      if (p.notice.kind === "stt") return <span className="text-error">{x.sttFailed}</span>;
+      return x.nothingHeard;
     }
     if (st.kind === "own") {
       if (st.turn.status === "transcribing") return <Spinner size="sm" label={x.transcribing} />;

@@ -11,6 +11,8 @@ interface Options {
   langOf: (side: Side) => LangCode;
   /** How much this conversation may collect, from the installation. */
   charLimit: number;
+  /** Largest recording one request may carry, from the installation. */
+  maxAudioBytes: number;
   /** Every change of a sentence, for the page that keeps the conversation on the server. */
   onTurn?: (turn: Turn) => void;
 }
@@ -191,6 +193,7 @@ export function useConversation(options: Options) {
     setRecording(side);
     void recorder.start({
       language: localeOf(langOf(side)),
+      maxBytes: optionsRef.current.maxAudioBytes,
       onPartial: (text) => {
         if (!text.trim() || find(id)?.status !== "transcribing") return;
         patch(id, { original: text });
@@ -213,7 +216,7 @@ export function useConversation(options: Options) {
       },
       onError: (kind) => {
         setNotice({ side, kind });
-        if (kind === "mic" && recordingRef.current === side) {
+        if ((kind === "mic" || kind === "tooLarge") && recordingRef.current === side) {
           recordingRef.current = null;
           setRecording(null);
           setQuiet(false);
