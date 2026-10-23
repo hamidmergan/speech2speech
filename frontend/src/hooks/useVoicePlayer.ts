@@ -37,17 +37,6 @@ export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = 
     abortRef.current = null;
   }, []);
 
-  const playUrl = useCallback((voiceId: string, url: string) => {
-    stopCurrent();
-    if (playingId === voiceId) { setPlayingId(null); return; }
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    setPlayingId(voiceId);
-    audio.play().catch(() => {});
-    audio.onended = () => setPlayingId(null);
-    audio.onerror = () => setPlayingId(null);
-  }, [playingId, stopCurrent]);
-
   const start = useCallback((key: string, url: string, cached: boolean) => {
     const audio = new Audio(url);
     audioRef.current = audio;
@@ -66,7 +55,8 @@ export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = 
     audio.onerror = done;
   }, []);
 
-  const playFromApi = useCallback(async (voiceId: string, endpoint: string, actualVoiceId?: string) => {
+  /** `key` identifies what is playing and keys the cache, `body` is what the endpoint is asked with. */
+  const playFromApi = useCallback(async (voiceId: string, endpoint: string, body?: unknown) => {
     stopCurrent();
     // A new attempt clears every old failure.
     setFailedId(null);
@@ -87,7 +77,7 @@ export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = 
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voice_id: actualVoiceId ?? voiceId }),
+        body: JSON.stringify(body ?? { voice_id: voiceId }),
         signal: controller.signal,
       });
       if (!res.ok) { setLoadingId(null); setFailedId(voiceId); return; }
@@ -101,5 +91,5 @@ export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = 
     }
   }, [playingId, loadingId, stopCurrent, keepCache, start]);
 
-  return { playingId, loadingId, failedId, playUrl, playFromApi };
+  return { playingId, loadingId, failedId, playFromApi };
 }

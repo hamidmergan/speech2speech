@@ -21,5 +21,80 @@
   "common": {
     "close": "Schließen",
     "pleaseSelect": "Bitte wählen"
+  },
+  "access": {
+    "title": "Zugang",
+    "intro": "Diese Seite ist mit einem Passwort geschützt.",
+    "label": "Zugangspasswort",
+    "submit": "Weiter",
+    "wrong": "Das Passwort stimmt nicht.",
+    "offline": "Der Server antwortet gerade nicht."
+  },
+  "conversation": {
+    "title": "Gespräch",
+    "intro": "Zwei Sprachen, ein Gespräch. Sprich oder tipp in dein Feld, daneben läuft die Übersetzung mit. Alles bleibt im Verlauf.",
+    "hint": "Beide sprechen oder tippen im Wechsel, jede Seite in ihrer Sprache.",
+    "noTranslationModel": "Es ist kein Chat-Modell eingerichtet, deshalb wird nichts übersetzt. Setze LLM_BASE_URL und LLM_MODEL.",
+    "noSpeechModel": "Es ist kein Modell für Spracherkennung eingerichtet, deshalb bleibt das Mikrofon stumm. Tippen geht weiter. Setze STT_MODEL.",
+    "limits": {
+      "near": "Das Gespräch ist gleich voll und endet dann von selbst. Mit Neues Gespräch geht es sofort weiter.",
+      "full": "Das Gespräch ist voll und wurde beendet. Es bleibt lesbar, für neue Sätze starte ein neues Gespräch."
+    },
+    "languages": {
+      "swap": "Seiten tauschen"
+    },
+    "speaker": {
+      "defaultLeft": "Person 1",
+      "defaultRight": "Person 2"
+    },
+    "history": {
+      "title": "Verlauf",
+      "showOlder": "Ältere anzeigen ({count})"
+    },
+    "actions": {
+      "newConversation": "Neues Gespräch",
+      "protocol": "Protokoll",
+      "saved": "Frühere Gespräche",
+      "settings": "Einstellungen"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "description": "Was diese Installation kann, und der eine Schalter dieser Seite.",
+    "models": {
+      "translation": "Übersetzung durch das Chat-Modell",
+      "translationMissing": "Nicht eingerichtet. Setze LLM_BASE_URL und LLM_MODEL.",
+      "stt": "Spracherkennung für das Mikrofon",
+      "sttMissing": "Nicht eingerichtet. Setze STT_MODEL.",
+      "tts": "Sprachausgabe zum Vorlesen",
+      "ttsMissing": "Nicht eingerichtet. Setze TTS_MODEL und TTS_VOICE."
+    },
+    "readAloud": "Vorlesen anbieten",
+    "readAloudHint": "Zeigt neben jeder Übersetzung einen Knopf zum Vorlesen.",
+    "privacy": "Ton und Text gehen nur an die eingestellten Modelle. Die Spracherkennung des Browsers wird nicht genutzt.",
+    "logout": "Abmelden",
+    "close": "Schließen"
+  },
+  "protocol": {
+    "title": "Gesprächsprotokoll",
+    "intro": "Beide Sprachen in der Reihenfolge des Gesprächs.",
+    "download": "Als Text herunterladen",
+    "empty": "Noch kein Gespräch, es gibt nichts zu protokollieren.",
+    "close": "Schließen",
+    "filename": "gespraechsprotokoll"
+  },
+  "saved": {
+    "title": "Frühere Gespräche",
+    "intro": "Jedes begonnene Gespräch wird gespeichert. Öffne eines, um es nachzulesen oder weiterzuführen.",
+    "rule": "Behalten werden die letzten {max} Gespräche. Kommt ein neues dazu, fällt das am längsten unbenutzte heraus.",
+    "full": "{max} von {max} Gesprächen. Das nächste neue Gespräch löscht den untersten Eintrag dieser Liste.",
+    "empty": "Noch kein gespeichertes Gespräch.",
+    "current": "gerade offen",
+    "sentences": "{count, plural, =1 {ein Satz} other {# Sätze}}",
+    "delete": "Gespräch löschen",
+    "close": "Schließen",
+    "untitled": "Ohne Satz",
+    "ended": "beendet",
+    "nextOut": "fällt als Nächstes heraus"
   }
 }

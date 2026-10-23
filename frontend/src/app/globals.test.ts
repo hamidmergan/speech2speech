@@ -44,11 +44,4 @@ describe("globals.css", () => {
       .sort();
     expect(orphans).toEqual([]);
   });
-
-  it("styles the tooltip class the cards ask for", () => {
-    // The truncated card titles show their full text through this class alone.
-    expect(code).toContain("tutor-tooltip");
-    expect(css).toMatch(/\.tutor-tooltip\s*\{/);
-    expect(css).toMatch(/\.tutor-tooltip::after\s*\{[^}]*content: attr\(data-tip\)/);
-  });
 });

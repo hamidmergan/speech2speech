@@ -21,5 +21,80 @@
   "common": {
     "close": "Close",
     "pleaseSelect": "Please select"
+  },
+  "access": {
+    "title": "Access",
+    "intro": "This page is protected by a password.",
+    "label": "Access password",
+    "submit": "Continue",
+    "wrong": "That password is not right.",
+    "offline": "The server is not answering right now."
+  },
+  "conversation": {
+    "title": "Conversation",
+    "intro": "Two languages, one conversation. Speak or type into your field, the translation runs alongside. Everything stays in the history.",
+    "hint": "Both speak or type in turns, each side in its own language.",
+    "noTranslationModel": "No chat model is configured, so nothing is translated. Set LLM_BASE_URL and LLM_MODEL.",
+    "noSpeechModel": "No speech recognition model is configured, so the microphone stays quiet. Typing still works. Set STT_MODEL.",
+    "limits": {
+      "near": "This conversation is nearly full and will end by itself. Start a new conversation to carry on.",
+      "full": "This conversation is full and has ended. It stays readable, start a new conversation for new sentences."
+    },
+    "languages": {
+      "swap": "Swap sides"
+    },
+    "speaker": {
+      "defaultLeft": "Person 1",
+      "defaultRight": "Person 2"
+    },
+    "history": {
+      "title": "History",
+      "showOlder": "Show older ({count})"
+    },
+    "actions": {
+      "newConversation": "New conversation",
+      "protocol": "Transcript",
+      "saved": "Past conversations",
+      "settings": "Settings"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "What this installation can do, and the one switch this page has.",
+    "models": {
+      "translation": "Translation through the chat model",
+      "translationMissing": "Not configured. Set LLM_BASE_URL and LLM_MODEL.",
+      "stt": "Speech recognition for the microphone",
+      "sttMissing": "Not configured. Set STT_MODEL.",
+      "tts": "Speech output for reading aloud",
+      "ttsMissing": "Not configured. Set TTS_MODEL and TTS_VOICE."
+    },
+    "readAloud": "Offer reading aloud",
+    "readAloudHint": "Shows a button next to every translation that reads it aloud.",
+    "privacy": "Audio and text only go to the models you configured. The browser's own speech recognition is not used.",
+    "logout": "Sign out",
+    "close": "Close"
+  },
+  "protocol": {
+    "title": "Conversation transcript",
+    "intro": "Both languages in the order of the conversation.",
+    "download": "Download as text",
+    "empty": "No conversation yet, there is nothing to record.",
+    "close": "Close",
+    "filename": "conversation-transcript"
+  },
+  "saved": {
+    "title": "Past conversations",
+    "intro": "Every conversation you start is saved. Open one to read it again or to continue.",
+    "rule": "The last {max} conversations are kept. When a new one starts, the one untouched longest drops out.",
+    "full": "{max} of {max} conversations. The next new conversation deletes the bottom entry of this list.",
+    "empty": "No saved conversation yet.",
+    "current": "open right now",
+    "sentences": "{count, plural, =1 {one sentence} other {# sentences}}",
+    "delete": "Delete conversation",
+    "close": "Close",
+    "untitled": "No sentence yet",
+    "ended": "ended",
+    "nextOut": "drops out next"
   }
 }

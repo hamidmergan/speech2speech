@@ -15,3 +15,4 @@ coverage/
 # Local configuration and data
 .env
 data/
+tsconfig.tsbuildinfo

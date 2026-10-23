@@ -35,7 +35,7 @@ sentences can be corrected afterwards.
       speech output through `providers.py`, access through `ACCESS_PASSWORD`.
 - [x] 2 Backend tests against a fake model server: sessions, correcting sentences,
       limits, password protection.
-- [ ] 3 Frontend: the conversation page, recording, two sides, history, read aloud.
+- [x] 3 Frontend: the conversation page, recording, two sides, history, read aloud.
 - [ ] 4 `docker compose up`, a conversation held in the browser against real models.
 - [ ] 5 README and CHANGELOG.
 - [ ] 6 English sweep, final commit.
@@ -49,6 +49,11 @@ sentences can be corrected afterwards.
 - Only the pair German and English is offered. Both the language codes and the
   texts inside the two cards are a fixed pair, so a third language is more than
   one more entry in a list.
+- The shell's stylesheet came with the classes of features that are not here. A
+  test guards that no class is defined without a user, so those blocks were taken
+  out one by one: the citation chips, the source rows, the mind map palette, the
+  panel handles, the heatmap, the schedule dot, the streaming cursor and the
+  waiting animation. 34 classes in all.
 - The frontend shell carries the design tokens and the small components. The login
   flow of the shell is not carried, so `src/lib/api.ts` lost the redirect to a login
   page and its test covers the access password instead. `src/lib/browserStore.ts`

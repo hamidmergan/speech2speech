@@ -116,10 +116,6 @@
   --kb-darker:    #00293d;
   --kb60:         #668DA0;
   --kb20:         #EBEDF0;
-  /* Ball in front of the chat waiting line. */
-  --warte-kugel:  var(--kb);
-  /* Light band that sweeps across a waiting text. */
-  --glanz:        #C9D7DD;
 
   /* Neutrals (CD blue-tinted scale) */
   --background:      #ffffff;
@@ -191,13 +187,6 @@
   --badge-orange-bg:  rgba(255,237,213,0.7);  --badge-orange-fg:  #C2410C;
   --badge-slate-bg:   rgba(241,245,249,0.7);  --badge-slate-fg:   #475569;
 
-  /* Mind-Elixir node palette */
-  --mm-c1: var(--kb);
-  --mm-c2: #0E7490;
-  --mm-c3: var(--success-strong);
-  --mm-c4: #A16207;
-  --mm-c5: #534AB7;
-  --mm-c6: var(--error-strong);
 }
 
 /* ─── Dark mode ("Deep Slate") ───────────────────────────────────────
@@ -214,9 +203,6 @@
   --kb-darker:    #9BD2F0;
   --kb60:         #4F7A91;
   --kb20:         #1C2A33;
-  --glanz:        #ffffff;
-  /* The brand blue disappears on the dark background, the light blue stays visible. */
-  --warte-kugel:  var(--kb-dark);
 
   /* Neutrals — Deep Slate (fast schwarz, minimaler Blau-Tint) */
   --background:      #0A0B0D;
@@ -283,50 +269,10 @@
   --badge-orange-bg:  rgba(194,65,12,0.30);   --badge-orange-fg:  #FED7AA;
   --badge-slate-bg:   rgba(71,85,105,0.30);   --badge-slate-fg:   #CBD5E1;
 
-  /* Mind-Elixir Palette — auf Dunkel optimiert */
-  --mm-c1: var(--kb);
-  --mm-c2: #5DD5E5;
-  --mm-c3: var(--success-strong);
-  --mm-c4: #FBBF24;
-  --mm-c5: #A299F0;
-  --mm-c6: var(--error-strong);
 }
 
-/* Dark mode: all inline color: var(--kb) elements (titles, links, labels) to white.
-   Chips excluded, they keep their brand-tinted look. */
-:root[data-theme="dark"] [style*="color: var(--kb)"]:not(.chip-cite) {
-  color: var(--foreground) !important;
-}
-
-/* Dark mode: make citation chips stronger, the default inline rgba is too subtle on dark. */
-:root[data-theme="dark"] .chip-cite {
-  color: #7BBDE5 !important;
-  background-color: rgba(91, 163, 206, 0.18) !important;
-}
-
-
-/* Dark Mode only: Quellen-hinzufuegen-Button — weisse Schrift, neutrale Border, Hover kb-blau (dashed bleibt). */
-:root[data-theme="dark"] .add-source-btn {
-  color: #FFFFFF !important;
-  border-color: var(--border) !important;
-}
-:root[data-theme="dark"] .add-source-btn:hover {
-  border-color: var(--kb) !important;
-}
-
-/* Source rows (chat chips, source list under the exercises): hover lightens the row
-   instead of tipping it into the dark accent blue. Light one step above --muted,
-   dark all the way to white. Icons follow via currentColor.
-   Light jumps to --kb60: --muted-soft was only half a step and invisible in use.
-   --kb60 is too light as a text colour (3.0:1 on --surface-dim), but acceptable as
-   a pure hover state of an already secondary row, the resting state stays --muted.
-   Deliberately OUTSIDE @layer components: the rows carry the utility
-   text-[var(--muted)], and the utilities layer beats components regardless of
-   specificity. Unlayered rules win against both. */
-.hover-lighten:hover:not(:disabled, [aria-disabled="true"]) {
-  color: var(--kb60) !important;
-}
-:root[data-theme="dark"] .hover-lighten:hover:not(:disabled, [aria-disabled="true"]) {
+/* Dark mode: all inline color: var(--kb) elements (titles, links, labels) to white. */
+:root[data-theme="dark"] [style*="color: var(--kb)"] {
   color: var(--foreground) !important;
 }
 
@@ -344,35 +290,10 @@
   color: #FFFFFF !important;
 }
 
-/* Dark mode: btn-primary/btn-fill-accent hover background transparent and text white. */
-:root[data-theme="dark"] .btn-primary:hover:not(:disabled, [aria-disabled="true"]),
-:root[data-theme="dark"] .btn-fill-accent:hover:not(:disabled, [aria-disabled="true"]) {
+/* Dark mode: btn-primary hover background transparent and text white. */
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled, [aria-disabled="true"]) {
   background-color: transparent !important;
   color: #FFFFFF !important;
-}
-
-/* ─── AI assistant: its own compact font scale ───────────────────────────
-   These values are currently identical to the @theme block above, so the
-   block has no effect at the moment. It stays anyway, as a lock: in the AI
-   assistant sources, chat and studio sit as three columns next to each
-   other, and there larger fonts cost more overview than they gain in
-   readability. If the scale above is raised again some day, this list keeps
-   the AI assistant compact.
-   
-   Resetting the values on an ancestor is enough, because the utilities read
-   font-size: var(--text-sm) and custom properties inherit downwards.
-   Whoever changes the scale in the @theme block does NOT change this list:
-   it is frozen on purpose. */
-.aia-scale {
-  --text-3xs: 0.625rem;   /* 10px */
-  --text-2xs: 0.6875rem;  /* 11px */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.875rem;    /* 14px */
-  --text-base: 1rem;      /* 16px */
-  --text-lg: 1.125rem;    /* 18px */
-  --text-xl: 1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;     /* 24px */
-  --text-3xl: 1.875rem;   /* 30px */
 }
 
 /* ─── Base ─── */
@@ -463,61 +384,6 @@ td, th, p, span, li, h1, h2, h3, h4, h5, h6, div {
   width: 0;
 }
 
-/* ─── Mind-elixir: source chip ─── */
-.mm-src-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-left: 5px;
-  padding: 1px 7px;
-  border-radius: 9px;
-  font-size: 0.75em;
-  font-weight: 500;
-  background: rgba(var(--kb-rgb), 0.12);
-  color: var(--kb);
-  vertical-align: middle;
-  line-height: 1.5;
-  white-space: nowrap;
-  outline: 2px solid transparent;
-  transition: outline-color 0.15s;
-}
-me-tpc:hover .mm-src-chip {
-  outline-color: var(--kb);
-}
-/* The chip clicked last keeps its frame, the same mark the chat chips carry. */
-.mm-src-chip--active {
-  outline-color: var(--cite-border);
-}
-
-/* Black tooltip for truncated card titles */
-.tutor-tooltip {
-  position: relative;
-}
-.tutor-tooltip::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 6px);
-  transform: translateX(-50%);
-  background: var(--tooltip-bg);
-  color: var(--tooltip-fg);
-  font-size: var(--text-2xs);
-  font-weight: 500;
-  line-height: 1.4;
-  padding: 6px 10px;
-  border-radius: 6px;
-  white-space: pre-wrap;
-  max-width: min(240px, 90vw);
-  width: max-content;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
-  z-index: 50;
-}
-.tutor-tooltip:hover::after {
-  opacity: 1;
-}
-
 /* ─── Hover system: semantic component classes ─────────────────────────
    One central source for all interactive hover patterns. Layer 2 above
    provides transition, focus ring and disabled for free. */
@@ -557,22 +423,14 @@ me-tpc:hover .mm-src-chip {
      The one source for every control whose hover is a 2px accent ring.
      The ring is pre-rendered transparent so hover only swaps the colour
      and nothing jumps by a pixel. The classes below add nothing but their
-     own fill and text changes on top, never a second ring. btn-ghost and
-     chip-cite have no rule of their own at all: the ring is their whole
-     hover. */
+     own fill and text changes on top, never a second ring. */
   .btn-icon,
   .btn-primary,
-  .btn-danger,
-  .btn-ghost,
-  .chip-cite,
-  .btn-soft-accent {
+  .btn-danger {
     outline: 2px solid transparent;
   }
   .btn-icon:hover:not(:disabled, [aria-disabled="true"]),
-  .btn-primary:hover:not(:disabled, [aria-disabled="true"]),
-  .btn-ghost:hover:not(:disabled, [aria-disabled="true"]),
-  .chip-cite:hover:not(:disabled, [aria-disabled="true"]),
-  .btn-soft-accent:hover:not(:disabled, [aria-disabled="true"]) {
+  .btn-primary:hover:not(:disabled, [aria-disabled="true"]) {
     outline-color: var(--kb);
   }
   /* btn-secondary draws its ring as a real border, so it recolors that one
@@ -620,7 +478,7 @@ me-tpc:hover .mm-src-chip {
     color: var(--error);
   }
 
-  /* Button on dark blue header: full white default, opacity fade on hover (matches logo-link). */
+  /* Button on dark blue header: full white default, opacity fade on hover. */
   .btn-on-dark {
     color: var(--header-fg);
   }
@@ -632,30 +490,6 @@ me-tpc:hover .mm-src-chip {
     background-color: rgba(255, 255, 255, 0.18);
   }
 
-  /* Logo link: subtle opacity fade */
-  .logo-link:hover {
-    opacity: 0.8;
-  }
-
-  /* Expand mark: no border, the hint is the mark itself, which gets stronger on
-     hover. Opacity sits on the svg so ring and dot lighten together. */
-  .chip-toggle svg {
-    transition: opacity 120ms ease;
-  }
-  .chip-toggle:hover svg {
-    opacity: 1 !important;
-  }
-
-  /* Outlined Accent CTA: bg, accent border + text. Hover: invert (fill accent + on-accent text). */
-  .btn-outline-accent {
-    background-color: var(--background);
-    color: var(--kb);
-    border: 2px solid var(--kb);
-  }
-  :root[data-theme="dark"] .btn-outline-accent {
-    color: var(--on-accent);
-  }
-
   /* Dark mode: hover:text-[var(--kb)] would be invisible on a dark background,
      so hover text is forced to white (e.g. cancel buttons in modals). */
   :root[data-theme="dark"] .hover\:text-\[var\(--kb\)\]:hover {
@@ -664,212 +498,12 @@ me-tpc:hover .mm-src-chip {
   :root[data-theme="dark"] .hover\:text-\[var\(--kb\)\]:hover svg {
     color: #ffffff;
   }
-  .btn-outline-accent:hover:not(:disabled, [aria-disabled="true"]) {
-    background-color: var(--kb);
-    color: var(--on-accent);
-  }
-
-  /* Solid Accent CTA: accent bg + on-accent text. Hover: invert (bg, accent border + text). */
-  .btn-fill-accent {
-    background-color: var(--kb);
-    color: var(--on-accent);
-    border: 2px solid var(--kb);
-  }
-  .btn-fill-accent:hover:not(:disabled, [aria-disabled="true"]) {
-    background-color: var(--background);
-    color: var(--kb);
-  }
-
-  /* Soft accent CTA: tinted fill, accent text. The transparent border only
-     keeps it the same size as its 2px-bordered neighbours. */
-  .btn-soft-accent {
-    background-color: rgba(var(--kb-rgb), 0.07);
-    color: var(--kb);
-    border: 2px solid transparent;
-  }
-  :root[data-theme="dark"] .btn-soft-accent {
-    color: var(--on-accent);
-  }
-
-  /* Outlined semantic circle buttons (e.g. flashcard again/knew). Hover fills with the semantic color. */
-  .btn-outline-danger {
-    background-color: var(--surface);
-    color: #d4453a;
-    border: 2px solid #d4453a;
-    box-shadow: 0 1px 3px rgba(0,40,60,0.06);
-    transition: background-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
-  }
-  .btn-outline-danger:hover:not(:disabled, [aria-disabled="true"]) {
-    background-color: #d4453a;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(212,69,58,0.28);
-  }
-  .btn-outline-success {
-    background-color: var(--surface);
-    color: #1a8a5c;
-    border: 2px solid #1a8a5c;
-    box-shadow: 0 1px 3px rgba(0,40,60,0.06);
-    transition: background-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
-  }
-  .btn-outline-success:hover:not(:disabled, [aria-disabled="true"]) {
-    background-color: #1a8a5c;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(26,138,92,0.28);
-  }
-  /* The choice that was made. It looks like the hover state and stays fully
-     visible while the unchosen button fades. That way the card says what was
-     pressed, even when you page back later. */
-  .btn-outline-danger.is-picked,
-  .btn-outline-success.is-picked {
-    color: #fff;
-  }
-  .btn-outline-danger.is-picked {
-    background-color: #d4453a;
-    box-shadow: 0 4px 12px rgba(212,69,58,0.28);
-  }
-  .btn-outline-success.is-picked {
-    background-color: #1a8a5c;
-    box-shadow: 0 4px 12px rgba(26,138,92,0.28);
-  }
 }
-
-/* Sources panel: hovering "select all" previews hover on the per-source checkboxes */
-.sources-panel:has(.sources-select-all:hover) .source-checkbox {
-  border-color: var(--kb);
-}
-
-/* Expandable row: hovering the row turns the expand-caret accent. Direct CSS
-   instead of Tailwind group-hover so we don't rely on arbitrary-value variants
-   inside group-hover (which can be fragile across Tailwind versions). */
-.row-caret {
-  color: var(--muted);
-  transition: color 0.15s ease;
-}
-.row-expandable:hover .row-caret {
-  color: var(--kb);
-}
-
-/* MiniStrip: hovering the full vertical strip turns icon + label blue, with outline on the icon. */
-.mini-strip-btn {
-  color: var(--muted);
-  transition: color 0.15s;
-}
-.mini-strip-icon {
-  transition: color 0.15s, outline-color 0.15s;
-}
-.mini-strip-btn:hover {
-  color: var(--kb);
-}
-.mini-strip-btn:hover .mini-strip-icon {
-  outline: 2px solid var(--kb);
-}
-
-/* Schedule timeline dot: ring also turns blue on row hover (overrides inline
-   box-shadow that holds the checked-green ring). bg is handled by Tailwind
-   group-hover utility on the dot itself. */
-.schedule-row:hover .schedule-dot {
-  box-shadow: 0 0 0 5px var(--background), 0 0 0 6px var(--kb) !important;
-}
-
-/* Heatmap cell (language training stats): accent outline on hover. !important is
-   needed because the selected outline is set inline. */
-/* Set outline-color permanently and exclude outline from transition-all so the hover border snaps to 2px at once */
-.heatmap-cell {
-  outline-color: var(--kb);
-  transition-property: background-color, color !important;
-}
-.heatmap-cell:hover {
-  outline: 2px solid var(--kb) !important;
-  outline-offset: 1px !important;
-}
-:root[data-theme="dark"] .heatmap-cell:hover span,
-:root[data-theme="dark"] .heatmap-cell.is-selected span {
-  color: #FFFFFF !important;
-}
-
 
 /* Status mark in dark mode: the brand blue disappears on dark, just as with the
    citation above, and the border tone is too quiet. */
 :root[data-theme="dark"] .status-mark--brand { --status-bar: var(--kb-dark); }
 :root[data-theme="dark"] .status-mark--muted { --status-bar: var(--muted-soft); }
-
-/* The app shell follows the visible viewport, on phones 100vh reaches behind the browser bar. */
-.viewport-shell {
-  height: 100vh;
-  height: 100dvh;
-}
-
-/* A full screen app does not rubber band as a whole, only its own panels scroll. */
-html:has(.viewport-shell),
-html:has(.viewport-shell) body {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-/* Hide non-critical elements (disclaimers, labels) on phones in landscape
-   so the chat/panel area keeps useful height. Scoped to touch devices so
-   a narrow desktop window is unaffected. The single-panel tab layout stays
-   fixed to the viewport in both orientations. */
-@media (max-height: 500px) and (pointer: coarse) {
-  .hide-on-short {
-    display: none !important;
-  }
-  .compact-on-short {
-    padding-top: 0.25rem !important;
-    padding-bottom: 0.25rem !important;
-  }
-}
-.show-on-short {
-  display: none;
-}
-
-/* Hide "Panel minimieren" buttons on smartphones and tablet-portrait — the
-   tab bar already serves as the switcher, so the extra sidebar icon is
-   redundant there. */
-@media (max-width: 767px), (max-height: 500px) and (pointer: coarse), (orientation: portrait) and (pointer: coarse) and (max-width: 1024px) {
-  [title="Panel minimieren"] {
-    display: none !important;
-  }
-}
-
-/* JS-driven mirror of the (max-height:500px)+(pointer:coarse) media block:
-   usePanelLayout sets body.is-phone-landscape on UA-detected phones in
-   landscape orientation. Needed because pointer:coarse misreads in DevTools
-   and on some hybrid browsers, leaving real iPhones with header/title still
-   visible. */
-body.is-phone-landscape .hide-on-short {
-  display: none !important;
-}
-body.is-phone-landscape .compact-on-short {
-  padding-top: 0.25rem !important;
-  padding-bottom: 0.25rem !important;
-}
-body.is-phone-landscape [title="Panel minimieren"] {
-  display: none !important;
-}
-
-/* Panel divider drag handle — slim & hover-only on mouse, larger & always visible on touch (iPad). */
-.panel-drag-handle {
-  width: 8px;
-}
-.panel-drag-handle-bar {
-  width: 2px;
-  height: 48px;
-  opacity: 0;
-}
-.panel-drag-handle:hover .panel-drag-handle-bar {
-  opacity: 1;
-}
-@media (pointer: coarse) {
-  .panel-drag-handle {
-    width: 14px;
-  }
-  .panel-drag-handle-bar {
-    width: 3px;
-    height: 64px;
-    opacity: 1;
-  }
-}
 
 /* ─── Global hover/focus/disabled rules ─────────────────────────────────
    :where() has specificity 0, so Tailwind utilities and existing component
@@ -907,64 +541,6 @@ body.is-phone-landscape [title="Panel minimieren"] {
   50%      { opacity: 0.35; }
 }
 
-/* The soft cousin of status-puls, for waiting text that should breathe without blinking. */
-/* Ball in front of the chat waiting line: it bursts into six dots, the ring turns once clockwise, the dots gather into the ball again. */
-@keyframes warte-kugel-ganz {
-  0%, 22%  { transform: scale(1); }
-  32%, 88% { transform: scale(0); }
-  95%      { transform: scale(1.1); }
-  100%     { transform: scale(1); }
-}
-@keyframes warte-kugel-punkt {
-  0%, 22%  { transform: translate(0, 0) scale(0); opacity: 0; }
-  34%, 80% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
-  92%      { transform: translate(0, 0) scale(1.8); opacity: 1; }
-  95%, 100% { transform: translate(0, 0) scale(1.8); opacity: 0; }
-}
-@keyframes warte-kugel-drehen {
-  0%, 34%   { transform: rotate(0deg); }
-  80%, 100% { transform: rotate(360deg); }
-}
-
-/* A light band sweeping slowly across the waiting text, the way other chat tools show they are working. */
-.text-glanz {
-  background: linear-gradient(90deg, var(--muted) 0%, var(--muted) 40%, var(--glanz) 50%, var(--muted) 60%, var(--muted) 100%);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: text-glanz 3s linear infinite;
-}
-@keyframes text-glanz {
-  from { background-position: 100% 0; }
-  to   { background-position: 0% 0; }
-}
-
-/* Writing cursor at the end of the last line of a streaming answer instead of on a line of its own below it. */
-.stream-cursor > :last-child:not(ul, ol, div)::after,
-.stream-cursor > :is(ul, ol):last-child > li:last-child::after {
-  content: "";
-  display: inline-block;
-  width: 0.5rem;
-  height: 1rem;
-  margin-left: 0.125rem;
-  vertical-align: text-bottom;
-  background-color: var(--muted-soft);
-  animation: phase-puls 1s ease-in-out infinite;
-}
-
-@keyframes phase-puls {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.65; }
-}
-
-/* A light running forward across a step that is working right now. Needs a
-   background twice the element's width, the position then carries it along. */
-@keyframes fluss {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   :where(*) {
     transition-duration: 0ms !important;
@@ -972,23 +548,3 @@ body.is-phone-landscape [title="Panel minimieren"] {
   }
 }
 
-/* Citation site: normal inline flow, NOT inline-flex, so the site is not a box of
-   its own inside the sentence.
-
-   The chips exist only while the site is open, so opening them DOES move the text:
-   a pointer on a single site shifts 54 of 58 text pieces of the answer, pushes 25 of
-   them onto another line and moves table columns by up to 460px. That is the known
-   price of having no reserved space; CitationChipGroup keeps the mark from flickering
-   while the layout jumps.
-
-   The site itself may wrap. As an unbreakable block (nowrap) it jumped entirely onto
-   the next line as soon as the sentence nearly filled the line, and that line then
-   carried only the mark. Only mark and punctuation have to stay together,
-   chip-stop-head takes care of that. */
-.chip-stop {
-  display: inline;
-}
-
-.chip-stop-head {
-  white-space: nowrap;
-}
