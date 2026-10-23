@@ -1,0 +1,8 @@
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+# 3.19.2 failed on some answers with a Pydantic error, 3.11.0 runs without it.
+openai==3.11.0
+loguru>=0.7.0
+num2words>=0.5.14
+pytest>=8.0

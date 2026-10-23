@@ -1,0 +1,25 @@
+{
+  "layoutMeta": {
+    "title": "speech2speech",
+    "description": "Ein Gespräch in zwei Sprachen auf einem Gerät. Sprechen, übersetzen, vorlesen."
+  },
+  "header": {
+    "productName": "speech2speech",
+    "darkMode": "Dunkle Ansicht",
+    "lightMode": "Helle Ansicht"
+  },
+  "footer": {
+    "machineNotice": "Die Übersetzung kommt von einem Sprachmodell und kann falsch sein. Bei wichtigen Dingen nachfragen.",
+    "selfHosted": "Läuft auf dem eigenen Server. Ton und Text gehen nur an das eingestellte Modell."
+  },
+  "languageSwitch": {
+    "ariaLabel": "Sprache der Oberfläche",
+    "title": "Sprache der Oberfläche",
+    "de": "Deutsch",
+    "en": "Englisch"
+  },
+  "common": {
+    "close": "Schließen",
+    "pleaseSelect": "Bitte wählen"
+  }
+}

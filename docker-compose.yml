@@ -1,0 +1,59 @@
+name: speech2speech
+
+services:
+  # The API and the conversations, kept in one SQLite file on the data volume.
+  backend:
+    build: ./backend
+    image: speech2speech-backend
+    container_name: speech2speech-backend
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - data:/data
+    ports:
+      # localhost only. The frontend container reaches the API inside the network
+      # as http://backend:8000, so this port is for host tools and `npm run dev`.
+      - "127.0.0.1:${BACKEND_PORT:-8100}:8000"
+    extra_hosts:
+      # So a model server running on the host is reachable as
+      # http://host.docker.internal:11434/v1.
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      # A crashed process is caught by restart: unless-stopped, a hanging one is not.
+      # curl is not in the image, so this goes through python.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=5).status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging: &log
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "7"
+
+  # The page. Open it on localhost, the microphone needs https or localhost.
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Where the page sends the API through. Next.js freezes the rewrite
+        # destinations of next.config.ts into the build, so this is a build
+        # argument and not a runtime variable. It names the backend service above.
+        # A build against another address:
+        #   docker compose build --build-arg BACKEND_URL=http://api.example.org frontend
+        BACKEND_URL: http://backend:8000
+    container_name: speech2speech-frontend
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3100}:3000"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+    logging: *log
+
+volumes:
+  data:

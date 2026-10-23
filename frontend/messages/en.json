@@ -1,0 +1,25 @@
+{
+  "layoutMeta": {
+    "title": "speech2speech",
+    "description": "One conversation in two languages on one device. Speak, translate, read aloud."
+  },
+  "header": {
+    "productName": "speech2speech",
+    "darkMode": "Dark view",
+    "lightMode": "Light view"
+  },
+  "footer": {
+    "machineNotice": "The translation comes from a language model and can be wrong. Ask again when something matters.",
+    "selfHosted": "Runs on your own server. Audio and text only go to the model you configured."
+  },
+  "languageSwitch": {
+    "ariaLabel": "Interface language",
+    "title": "Interface language",
+    "de": "German",
+    "en": "English"
+  },
+  "common": {
+    "close": "Close",
+    "pleaseSelect": "Please select"
+  }
+}
