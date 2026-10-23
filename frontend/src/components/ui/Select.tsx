@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { createPortal } from "react-dom";
 import { CaretDown, Check } from "@phosphor-icons/react";
@@ -57,6 +57,11 @@ export default function Select<T extends string>({
 }: SelectProps<T>) {
   const t = useTranslations("common");
   const resolvedPlaceholder = placeholder ?? t("pleaseSelect");
+  // The list is rendered into document.body, outside the button's subtree, so
+  // without these ids nothing ties the two together for a screen reader.
+  const reactId = useId();
+  const listId = `${reactId}-listbox`;
+  const optionId = (idx: number) => `${reactId}-option-${idx}`;
   const [open, setOpen] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState<number>(-1);
   const [pos, setPos] = useState<{ top: number; left: number; width: number; smMaxWidth?: number } | null>(null);
@@ -164,6 +169,10 @@ export default function Select<T extends string>({
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-controls={listId}
+        // Focus never leaves the button, so this is what names the highlighted
+        // entry while the arrow keys walk the list.
+        aria-activedescendant={open && highlightIdx >= 0 ? optionId(highlightIdx) : undefined}
         disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
         className={`${BUTTON_BASE} ${SIZE_CLS[size]}`}
@@ -180,6 +189,7 @@ export default function Select<T extends string>({
       {open && pos && typeof document !== "undefined" && createPortal(
         <ul
           ref={listRef}
+          id={listId}
           role="listbox"
           className="fixed z-[100] max-h-60 overflow-y-auto rounded-md py-1 text-sm"
           style={{
@@ -201,6 +211,7 @@ export default function Select<T extends string>({
             return (
               <li
                 key={opt.value}
+                id={optionId(idx)}
                 role="option"
                 aria-selected={isSelected}
                 aria-disabled={opt.disabled}

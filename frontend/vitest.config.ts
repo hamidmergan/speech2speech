@@ -1,14 +1,20 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-// Unit tests for pure frontend logic, scoped to src/.
+// Unit tests for the frontend, scoped to src/. Component and hook tests ask for
+// the jsdom environment with a docblock of their own.
 export default defineConfig({
+  // The React 19 JSX runtime, the same one Next.js compiles the app with.
+  esbuild: { jsx: "automatic" },
   // Mirrors the "@/*" path in tsconfig.json. Without it a tested module cannot
   // reach a shared helper under src/lib the way the app does.
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+    // One copy of each, otherwise a provider in a helper module and a hook in a
+    // component end up on two different React contexts.
+    dedupe: ["react", "react-dom", "next-intl", "use-intl"],
   },
   test: {
     environment: "node",

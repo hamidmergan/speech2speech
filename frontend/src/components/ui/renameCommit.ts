@@ -8,9 +8,9 @@ export type RenameAction =
 
 /** Empty or unchanged cancels, otherwise it saves. */
 export function renameCommit(draft: string, current: string): RenameAction {
-  const naechster = draft.trim();
-  if (!naechster || naechster === current.trim()) return { kind: "abort" };
-  return { kind: "save", title: naechster };
+  const next = draft.trim();
+  if (!next || next === current.trim()) return { kind: "abort" };
+  return { kind: "save", title: next };
 }
 
 /** The reason from the server takes precedence, otherwise the general sentence appears. */

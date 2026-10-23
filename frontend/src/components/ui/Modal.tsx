@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { backdropClose, newBackdropPress } from "./backdropClose";
@@ -16,7 +16,14 @@ interface ModalProps {
   closeOnBackdropClick?: boolean;
   closeOnEscape?: boolean;
   className?: string;
+  /** For a dialog without a visible title of its own. */
+  ariaLabel?: string;
 }
+
+/** Everything inside the dialog a Tab can land on, in document order. */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+  + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const sizeClass: Record<NonNullable<ModalProps["size"]>, string> = {
   sm: "max-w-md",
@@ -58,11 +65,52 @@ export default function Modal({
   closeOnBackdropClick = true,
   closeOnEscape = true,
   className = "",
+  ariaLabel,
 }: ModalProps) {
   const t = useTranslations("common");
   const dialogRef = useRef<HTMLDivElement>(null);
   const press = useRef(newBackdropPress()).current;
   const area = useVisibleArea(open);
+  const titleId = `${useId()}-title`;
+
+  // The dialog takes the focus when it opens and hands it back when it closes,
+  // otherwise the keyboard stays on the page behind the overlay.
+  useEffect(() => {
+    if (!open) return;
+    const before = document.activeElement as HTMLElement | null;
+    // The panel itself, so the name of the dialog is read out first and Tab
+    // then walks its own content from the top.
+    dialogRef.current?.focus();
+    return () => before?.focus?.();
+  }, [open]);
+
+  // Tab must not walk out of the dialog into the cards under the overlay.
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const items = [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (items.length === 0) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (!e.shiftKey && (active === last || !dialog.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && (active === first || !dialog.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      }
+    }
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open]);
 
   useEffect(() => {
     if (!open || !closeOnEscape) return;
@@ -96,10 +144,14 @@ export default function Modal({
       {...backdropClose(press, onClose, closeOnBackdropClick)}
       role="dialog"
       aria-modal="true"
+      // A dialog without a name is announced as "dialog" and nothing else.
+      aria-labelledby={title ? titleId : undefined}
+      aria-label={title ? undefined : ariaLabel}
     >
       <div
         ref={dialogRef}
-        className={`w-full ${sizeClass[size]} rounded-xl shadow-lg flex flex-col max-h-full ${className}`}
+        tabIndex={-1}
+        className={`w-full ${sizeClass[size]} rounded-xl shadow-lg flex flex-col max-h-full focus:outline-none ${className}`}
         style={{ backgroundColor: "var(--background)", border: "1px solid var(--border)" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -109,7 +161,7 @@ export default function Modal({
             style={{ borderBottom: "1px solid var(--border)" }}
           >
             {/* min-w-0 plus the break: a long file name must not push the close button out of the dialog. */}
-            <div className="min-w-0 break-words text-base font-semibold" style={{ color: "var(--foreground)" }}>
+            <div id={titleId} className="min-w-0 break-words text-base font-semibold" style={{ color: "var(--foreground)" }}>
               {title}
             </div>
             <button

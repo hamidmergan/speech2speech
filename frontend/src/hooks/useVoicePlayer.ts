@@ -2,8 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/** One audio file at a time, keepCache holds what was generated until unmount. */
-export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = {}) {
+import { api } from "@/lib/api";
+
+/** How many generated files the cache holds before the oldest one is released. */
+export const CACHE_LIMIT = 20;
+
+interface Options {
+  /** Keep what was generated, so a sentence read twice is fetched once. */
+  keepCache?: boolean;
+  /** How many files the cache holds at most. */
+  cacheLimit?: number;
+}
+
+/**
+ * One audio file at a time.
+ *
+ * With keepCache the generated files stay, but never more than cacheLimit of
+ * them. A long conversation with every sentence read aloud, and every
+ * correction of one, would otherwise pin hundreds of blobs in the tab.
+ */
+export function useVoicePlayer({ keepCache = false, cacheLimit = CACHE_LIMIT }: Options = {}) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   // The id of the last failure, old callers do not read the field.
@@ -67,15 +85,22 @@ export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = 
     }
 
     const cached = keepCache ? cacheRef.current.get(voiceId) : undefined;
-    if (cached) { start(voiceId, cached, true); return; }
+    if (cached) {
+      // Youngest again, so the cap drops what has not been played for longest.
+      cacheRef.current.delete(voiceId);
+      cacheRef.current.set(voiceId, cached);
+      start(voiceId, cached, true);
+      return;
+    }
 
     setLoadingId(voiceId);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const res = await fetch(endpoint, {
+      // Through the client, so a 401 reopens the password field the way every
+      // other call does instead of showing a crossed out speaker icon.
+      const res = await api.fetch(endpoint, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body ?? { voice_id: voiceId }),
         signal: controller.signal,
@@ -83,13 +108,21 @@ export function useVoicePlayer({ keepCache = false }: { keepCache?: boolean } = 
       if (!res.ok) { setLoadingId(null); setFailedId(voiceId); return; }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      if (keepCache) cacheRef.current.set(voiceId, url);
+      if (keepCache) {
+        cacheRef.current.set(voiceId, url);
+        while (cacheRef.current.size > cacheLimit) {
+          const oldest = cacheRef.current.keys().next().value as string;
+          const stale = cacheRef.current.get(oldest);
+          cacheRef.current.delete(oldest);
+          if (stale) URL.revokeObjectURL(stale);
+        }
+      }
       start(voiceId, url, keepCache);
     } catch (e) {
       // A cancellation by the user is not an error.
       if ((e as Error).name !== "AbortError") { setLoadingId(null); setFailedId(voiceId); }
     }
-  }, [playingId, loadingId, stopCurrent, keepCache, start]);
+  }, [playingId, loadingId, stopCurrent, keepCache, cacheLimit, start]);
 
   return { playingId, loadingId, failedId, playFromApi };
 }

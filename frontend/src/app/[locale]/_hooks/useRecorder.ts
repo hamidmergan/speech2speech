@@ -5,7 +5,13 @@ import { transcribeWindow } from "../_api";
 import { audioFits, recordingPhase } from "../_limits";
 import { createVoiceMeter, type VoiceMeter } from "../_voiceActivity";
 
-export type RecorderError = "mic" | "stt" | "tooLarge";
+export type RecorderError = "mic" | "insecure" | "stt" | "tooLarge";
+
+/** The browser only exposes the microphone on https or on localhost. */
+export function microphoneReachable(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return typeof navigator.mediaDevices?.getUserMedia === "function";
+}
 
 export interface RecordingSession {
   /** The language spoken into this microphone, so the model does not have to guess it. */
@@ -98,9 +104,13 @@ function record(stream: MediaStream, session: RecordingSession): Handle {
       if (!cancelled && !finalRequested) {
         if (e instanceof TooLarge) {
           // Nothing more can be sent, so the recording ends here and says why.
+          // finalRequested first: the finally below would otherwise fire the
+          // queued window, throw TooLarge again and stop an inactive recorder,
+          // which throws InvalidStateError as an unhandled rejection.
+          finalRequested = true;
           session.onError("tooLarge");
           session.onAutoStop();
-          recorder.stop();
+          if (recorder.state !== "inactive") recorder.stop();
           return;
         }
         session.onError("stt");
@@ -185,6 +195,13 @@ export function useRecorder() {
     current.current = null;
     const attempt = (starting.current += 1);
     let stream: MediaStream;
+    // Outside a secure origin navigator.mediaDevices is undefined. Reading it
+    // inside the try would throw and read as a refused permission.
+    if (!microphoneReachable()) {
+      session.onError("insecure");
+      session.onFinal("");
+      return;
+    }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {

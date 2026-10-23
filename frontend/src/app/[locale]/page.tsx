@@ -15,6 +15,7 @@ import { createSession, deleteSession, fetchSession, listSessions, patchSession,
 import { createMirror } from "./_mirror";
 import { useConversation } from "./_hooks/useConversation";
 import { useInstallation } from "./_hooks/useInstallation";
+import { microphoneReachable } from "./_hooks/useRecorder";
 import { otherLang, otherSide, type LangCode, type Side, type Turn } from "./_types";
 
 const ACTION = "px-3 py-2 text-sm border-2 border-border rounded-md hover:border-[var(--kb)] hover:text-[var(--kb)] flex items-center gap-1 whitespace-nowrap";
@@ -24,6 +25,10 @@ export default function InterpreterPage() {
   const locale = useLocale();
 
   const installation = useInstallation();
+  // Only a secure origin hands out a microphone. Read after mount, so the
+  // server rendered page and the first client render agree.
+  const [micReachable, setMicReachable] = useState(true);
+  useEffect(() => setMicReachable(microphoneReachable()), []);
   const [locked, setLocked] = useState(false);
   // Any call that comes back with a 401 reopens the password field.
   useEffect(() => onAccessLocked(() => setLocked(true)), []);
@@ -257,6 +262,8 @@ export default function InterpreterPage() {
             langs={langs}
             names={names}
             allowSetup={allowSetup}
+            stt={installation.stt}
+            secureContext={micReachable}
             canSpeak={canSpeak}
             speaking={speaking}
             onSpeak={speakTurn}

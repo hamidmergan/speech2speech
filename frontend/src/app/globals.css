@@ -5,7 +5,7 @@
 @custom-variant dark (&:where(:root[data-theme="dark"] *, :root[data-theme="dark"]));
 
 @theme {
-  /* Disable Tailwind's default color palette — only CD tokens below remain */
+  /* Disable Tailwind's default color palette, only the tokens below remain */
   --color-*: initial;
 
   /* Special color tokens (re-declared after wipe) */
@@ -103,7 +103,7 @@
 
 
 
-/* ─── Corporate Design tokens — single source of truth ──────────────────
+/* ─── Design tokens, the single source of truth ─────────────────────────
    To rebrand the entire app, change ONLY the values below. Every utility
    class, component style, and inline `var(--…)` reference picks up the
    new values automatically. The @theme block above only re-exports these

@@ -25,6 +25,10 @@ export interface CardTexts {
   waiting: (name: string) => string;
   ended: string;
   micDenied: string;
+  /** The browser hands out no microphone outside https or localhost. */
+  insecureOrigin: string;
+  /** No speech to text model is set up on this installation. */
+  noSpeechModel: string;
   tooLong: string;
   sttFailed: string;
   nothingHeard: string;
@@ -62,6 +66,8 @@ export const CARD_TEXTS: Record<LangCode, CardTexts> = {
     waiting: (name) => `${name} spricht gerade. Sprechen übernimmt das Wort.`,
     ended: "Gespräch beendet.",
     micDenied: "Das Mikrofon ist nicht freigegeben.",
+    insecureOrigin: "Das Mikrofon braucht https oder localhost. Tippen geht weiter.",
+    noSpeechModel: "Keine Spracherkennung eingerichtet. Tippen geht weiter.",
     tooLong: "Die Aufnahme ist zu lang geworden und wurde beendet. Nichts davon wurde abgeschnitten, sprich den Satz bitte noch einmal.",
     sttFailed: "Die Spracherkennung ist gerade nicht möglich.",
     nothingHeard: "Nichts verstanden, bitte noch einmal.",
@@ -97,6 +103,8 @@ export const CARD_TEXTS: Record<LangCode, CardTexts> = {
     waiting: (name) => `${name} is speaking. Speak takes over.`,
     ended: "Conversation ended.",
     micDenied: "The microphone is not allowed.",
+    insecureOrigin: "The microphone needs https or localhost. Typing still works.",
+    noSpeechModel: "No speech recognition is configured. Typing still works.",
     tooLong: "The recording grew too long and has stopped. Nothing of it was cut away, please say the sentence again.",
     sttFailed: "Speech recognition is not available right now.",
     nothingHeard: "Nothing understood, please try again.",

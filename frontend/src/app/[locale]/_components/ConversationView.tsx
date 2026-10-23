@@ -33,6 +33,10 @@ interface Props {
   names: Record<Side, string>;
   /** Languages and seats can only change while nothing was said. */
   allowSetup: boolean;
+  /** A speech to text model is configured, so the microphone has somewhere to go. */
+  stt: boolean;
+  /** The browser hands out the microphone, which it only does on https or localhost. */
+  secureContext: boolean;
   onLanguage: (side: Side, code: LangCode) => void;
   onRename: (side: Side, name: string) => void;
   onSwap: () => void;
@@ -108,6 +112,13 @@ export default function ConversationView(p: Props) {
     return null;
   };
 
+  /** Why the microphone cannot be used here, or null when it can. */
+  const micBlocked = (): "noModel" | "insecure" | null => {
+    if (!p.stt) return "noModel";
+    if (!p.secureContext) return "insecure";
+    return null;
+  };
+
   const status = (side: Side, st: Stage, x: CardTexts): ReactNode => {
     if (p.recording === side) {
       if (p.endingSoon) return <span className="text-warn">{x.endingSoon}</span>;
@@ -118,18 +129,25 @@ export default function ConversationView(p: Props) {
     if (p.ended) return x.ended;
     if (p.notice && p.notice.side === side) {
       if (p.notice.kind === "mic") return <span className="text-error">{x.micDenied}</span>;
+      if (p.notice.kind === "insecure") return <span className="text-error">{x.insecureOrigin}</span>;
       if (p.notice.kind === "tooLarge") return <span className="text-error">{x.tooLong}</span>;
       if (p.notice.kind === "stt") return <span className="text-error">{x.sttFailed}</span>;
       return x.nothingHeard;
     }
+    // Nothing is going on, so this is where the reason the microphone is out of
+    // reach belongs. Typing still works, and the sentence says so.
+    const blocked = micBlocked();
+    const idle: ReactNode = blocked
+      ? <span className="text-warn">{blocked === "insecure" ? x.insecureOrigin : x.noSpeechModel}</span>
+      : x.idle;
     if (st.kind === "own") {
       if (st.turn.status === "transcribing") return <Spinner size="sm" label={x.transcribing} />;
       if (st.turn.status === "translating") return x.translating;
       if (st.turn.status === "pending") return x.pressTranslate;
-      return st.turn.original.trim() ? x.editHint : x.idle;
+      return st.turn.original.trim() ? x.editHint : idle;
     }
     if (st.kind === "other" && st.turn.status === "failed") return <span className="text-error">{x.failed}</span>;
-    return x.idle;
+    return idle;
   };
 
   const speakMark = (turn: Turn) => {
@@ -179,7 +197,6 @@ export default function ConversationView(p: Props) {
           onFocus={() => { if (!p.ended) p.onBegin(side); }}
           placeholder={st.turn.original.trim() ? "…" : x.translationHere}
           aria-label={x.translationAria}
-          aria-live="polite"
           spellCheck={false}
           className={`${FIELD} ${READ_ONLY}`}
         />
@@ -226,14 +243,24 @@ export default function ConversationView(p: Props) {
         <div className="px-3 py-3 flex flex-col gap-1.5 flex-1">
           {mark(side, st, x)}
           {field(side, st, x)}
+          {/* A live region announces a change of content. The value of a textarea
+              is a property and never its content, so the translation would never
+              be read out. It is mirrored here, where a change really is content. */}
+          <div id={`interpreter-announce-${side}`} className="sr-only" aria-live="polite" aria-atomic="true">
+            {st.kind === "other" && st.turn.status !== "translating" && st.turn.status !== "transcribing"
+              ? st.turn.translation
+              : ""}
+          </div>
           <div className="flex items-center gap-3 min-h-[3rem]">
-            <MicButton recording={p.recording === side} disabled={p.ended} onClick={() => p.onMic(side)} startLabel={x.speak} stopLabel={x.stop} />
+            <MicButton recording={p.recording === side} disabled={p.ended || micBlocked() !== null} onClick={() => p.onMic(side)} startLabel={x.speak} stopLabel={x.stop} />
             {st.kind === "own" && st.turn.status === "pending" && (
               <button type="button" onClick={() => p.onTranslate(side)} className="px-3 py-1.5 text-sm btn-primary rounded-md">
                 {x.translate}
               </button>
             )}
-            <p className="text-xs text-muted flex-1 min-w-0">{status(side, st, x)}</p>
+            {/* Every microphone and model error lands in this line, so it has to
+                be a region that announces itself. */}
+            <p className="text-xs text-muted flex-1 min-w-0" role="status">{status(side, st, x)}</p>
             {st.kind === "other" && speakButton(st.turn, translation, x)}
             {st.kind === "other" && (
               <IconButton
@@ -279,9 +306,9 @@ export default function ConversationView(p: Props) {
                       {!right && <span>{p.formatTime(turn.at)}</span>}
                     </p>
                     <div className={`rounded-2xl px-4 py-2.5 text-sm ${right ? "rounded-br-sm" : "rounded-bl-sm"}`} style={{ backgroundColor: CARD_TINT[turn.side] }}>
-                      <p className="font-semibold text-foreground whitespace-pre-wrap break-words">{turn.original}</p>
+                      <p lang={localeOf(p.langs[turn.side])} className="font-semibold text-foreground whitespace-pre-wrap break-words">{turn.original}</p>
                       <div className="flex items-start gap-2">
-                        <p className="flex-1 min-w-0 text-foreground-soft whitespace-pre-wrap break-words">{turn.translation || "…"}</p>
+                        <p lang={localeOf(p.langs[otherSide(turn.side)])} className="flex-1 min-w-0 text-foreground-soft whitespace-pre-wrap break-words">{turn.translation || "…"}</p>
                         {speakButton(turn, turn.translation, CARD_TEXTS[p.langs[otherSide(turn.side)]])}
                       </div>
                     </div>
