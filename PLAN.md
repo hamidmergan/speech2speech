@@ -31,7 +31,7 @@ sentences can be corrected afterwards.
 
 - [x] 0 Scaffold: repo, LICENSE, PLAN, README skeleton, backend and frontend shells,
       `docker-compose.yml` with two services, `.env.example`.
-- [ ] 1 Backend: SQLite repository, service, routes, translation, transcription and
+- [x] 1 Backend: SQLite repository, service, routes, translation, transcription and
       speech output through `providers.py`, access through `ACCESS_PASSWORD`.
 - [ ] 2 Backend tests against a fake model server: sessions, correcting sentences,
       limits, password protection.
@@ -51,4 +51,15 @@ sentences can be corrected afterwards.
   one more entry in a list.
 - The frontend shell carries the design tokens and the small components. The login
   flow of the shell is not carried, so `src/lib/api.ts` lost the redirect to a login
-  page and its test covers the access password instead.
+  page and its test covers the access password instead. `src/lib/browserStore.ts`
+  keeps only the preferences key, the workspace and per person keys went with the
+  features that used them.
+- The translation prompt is carried unchanged from the source tool, including its
+  formal register. It was written for written material, and a spoken conversation
+  comes back a little more formal than it went in.
+- The batch path of the translation client is not carried. One spoken sentence at
+  a time never batches. With it went the numbered list prompt, the parser for that
+  list, the per item fallback and the two constants that sized a chunk.
+- The target language reaches the model as a name, "German" or "English", not as
+  the code the page sends. The source handed the code straight to the prompt
+  because the same interface also served a translation API that wanted codes.
