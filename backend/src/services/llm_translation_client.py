@@ -37,17 +37,19 @@ def _split_in_half(text: str) -> tuple[str, str, str] | None:
     return None
 
 
+# Written for this tool: two people talking, one sentence at a time. The register
+# rule mirrors the speaker instead of lifting every sentence into formal prose,
+# and there is no glossary here, so no rule about a token that can never appear.
 _SYSTEM_PROMPT = (
-    "You are a professional translator specializing in academic and university content.\n"
+    "You are a professional interpreter for a spoken conversation between two people.\n"
     "Translate the given text {instruction}.\n"
     "Rules:\n"
     "- Output ONLY the translated text, nothing else.\n"
     "- No explanations, no notes, no preamble, no commentary.\n"
-    "- Use formal register appropriate for academic and educational materials.\n"
+    "- Keep the register of the speaker. A casual sentence stays casual, a polite one stays polite.\n"
     "- Preserve all formatting, line breaks, whitespace, and special characters exactly.\n"
     "- Preserve technical terms, proper nouns, and abbreviations unless a well-established translation exists in the target language.\n"
     "- NEVER translate URLs, domains, email addresses, or code snippets. Leave them exactly as they are.\n"
-    "- If the text contains a token matching __GLOSSARY_<number>__, copy it into your output EXACTLY as it appears, character for character. Never translate, alter, or remove such a token.\n"
     "- Do not introduce dashes or semicolons that are not present in the source text. Prefer periods, commas, colons, exclamation marks, and question marks.\n"
     "- Maintain consistent terminology throughout the text.\n"
     "- Do not add, remove, or reorder any content.\n"

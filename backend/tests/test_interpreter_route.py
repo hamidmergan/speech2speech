@@ -90,3 +90,15 @@ def test_a_sentence_that_can_be_stored_can_also_be_translated(client, models):
     r = client.post("/interpreter/translate", json={"text": text, "target_lang": "EN-US"})
     assert r.status_code == 200, r.text
     assert models.chat_requests[-1]["messages"][1]["content"] == text.strip()
+
+
+def test_the_prompt_is_written_for_a_spoken_conversation(client, models):
+    """No glossary exists here, and a reception desk is not a lecture hall."""
+    client.post("/interpreter/translate", json={"text": "Kannst du mir kurz helfen?", "target_lang": "EN-US"})
+
+    system = models.chat_requests[0]["messages"][0]["content"]
+    assert "spoken conversation" in system
+    assert "academic" not in system.lower() and "university" not in system.lower()
+    # A rule about a token that can never arrive is one more thing to leak.
+    assert "__GLOSSARY_" not in system
+    assert "Keep the register of the speaker." in system
