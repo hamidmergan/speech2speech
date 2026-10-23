@@ -145,7 +145,7 @@ one untouched longest is deleted with its sentences.
 
 ```bash
 cd backend
-python -m venv .venv && .venv/bin/pip install -r requirements.txt
+python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
 .venv/bin/python -m pytest
 ```
 

@@ -19,12 +19,17 @@ speech output         TTS       reads a translation aloud
 Base URL and API key fall back to the ``LLM_*`` values, the model never does.
 A missing API key becomes the placeholder ``none``, the OpenAI library needs a
 value even where the server wants none.
+
+Speech output additionally wants ``TTS_VOICE``. Voice names differ from server to
+server and most self hosted ones answer 400 on a name they do not know, so a
+guessed default would show a read aloud button that fails on every press.
 """
 
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Optional
 
 # A capability and the environment prefix behind it.
@@ -114,6 +119,10 @@ def provider_for(capability: str) -> Optional[dict]:
     base_url = _env(f"{prefix}_BASE_URL") or _env("LLM_BASE_URL")
     if not base_url:
         return None
+    if capability == "tts" and not _env("TTS_VOICE"):
+        # No voice, no speech output. Guessing one would mean a button that
+        # answers 502 on every press with nothing naming the real cause.
+        return None
     api_key = (
         _env(f"{prefix}_API_KEY")
         or _env("LLM_API_KEY")
@@ -135,7 +144,9 @@ def missing_reason(capability: str) -> str:
     prefix = capability.upper()
     if not _env(f"{prefix}_MODEL"):
         return f"{prefix}_MODEL is not set"
-    return f"{prefix}_BASE_URL is not set and LLM_BASE_URL has no value to fall back to"
+    if not (_env(f"{prefix}_BASE_URL") or _env("LLM_BASE_URL")):
+        return f"{prefix}_BASE_URL is not set and LLM_BASE_URL has no value to fall back to"
+    return f"{prefix}_VOICE is not set"
 
 
 def resolve(feature: str) -> FeatureBinding:
@@ -172,50 +183,82 @@ def check_required() -> list[str]:
 
 
 def tts_voice() -> str:
-    """The voice the speech endpoint is asked for. Named voices differ per server."""
-    return _env("TTS_VOICE") or "alloy"
+    """The voice the speech endpoint is asked for, from TTS_VOICE.
+
+    No default. Named voices differ from server to server, so a guessed one would
+    be refused by most of them.
+    """
+    return _env("TTS_VOICE")
 
 
 # ─── The factories turn a binding into a finished client ────────────────────
 
 
-def make_translation_client(binding: FeatureBinding):
-    """An LLMTranslationClient for the chat model."""
+# A client owns an HTTP connection pool. One per endpoint instead of one per
+# request, otherwise live translation opens a new TCP (and TLS) handshake about
+# once a second. The settings are the key, so a changed variable gives a new one.
+_CLIENT_CACHE_SIZE = 8
+
+
+@lru_cache(maxsize=_CLIENT_CACHE_SIZE)
+def _translation_client(api_key: str, base_url: str, model: str, name: str):
     from src.services.llm_translation_client import LLMTranslationClient
 
+    return LLMTranslationClient(api_key=api_key, base_url=base_url, model=model, provider=name)
+
+
+@lru_cache(maxsize=_CLIENT_CACHE_SIZE)
+def _whisper_client(api_key: str, base_url: str, model: str, name: str):
+    from src.services.whisper_client import WhisperClient
+
+    return WhisperClient(api_key=api_key, base_url=base_url, model=model, provider=name)
+
+
+@lru_cache(maxsize=_CLIENT_CACHE_SIZE)
+def _tts_client(api_key: str, base_url: str, model: str):
+    from src.services.openai_compat_tts import OpenAICompatTTSClient
+
+    return OpenAICompatTTSClient(base_url=base_url, model=model, api_key=api_key)
+
+
+def forget_clients() -> None:
+    """Drops the cached clients. The tests point the same settings at a new server."""
+    _translation_client.cache_clear()
+    _whisper_client.cache_clear()
+    _tts_client.cache_clear()
+
+
+def make_translation_client(binding: FeatureBinding):
+    """An LLMTranslationClient for the chat model."""
     provider = binding.provider
-    return LLMTranslationClient(
-        api_key=provider.get("api_key") or "none",
-        base_url=ensure_v1(provider["base_url"]),
-        model=binding.model or "",
-        provider=provider["name"],
+    return _translation_client(
+        provider.get("api_key") or "none",
+        ensure_v1(provider["base_url"]),
+        binding.model or "",
+        provider["name"],
     )
 
 
 def make_whisper_client(binding: FeatureBinding):
     """A client for speech recognition, the model is mandatory here."""
-    from src.services.whisper_client import WhisperClient
-
     if not binding.model:
         raise FeatureNotConfigured("STT_MODEL is not set")
     provider = binding.provider
-    return WhisperClient(
-        api_key=provider.get("api_key") or "none",
-        base_url=ensure_v1(provider["base_url"]),
-        model=binding.model,
-        provider=provider["name"],
+    return _whisper_client(
+        provider.get("api_key") or "none",
+        ensure_v1(provider["base_url"]),
+        binding.model,
+        provider["name"],
     )
 
 
 def make_tts_client(binding: FeatureBinding):
     """An OpenAICompatTTSClient for the configured speech endpoint."""
-    from src.services.openai_compat_tts import OpenAICompatTTSClient
-
     if not binding.model:
         raise FeatureNotConfigured("TTS_MODEL is not set")
     provider = binding.provider
-    return OpenAICompatTTSClient(
-        base_url=provider["base_url"],
-        model=binding.model,
-        api_key=provider.get("api_key") or "none",
+    return _tts_client(
+        provider.get("api_key") or "none",
+        provider["base_url"],
+        binding.model,
     )

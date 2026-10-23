@@ -40,8 +40,8 @@ def db_path() -> Path:
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (
     id          TEXT PRIMARY KEY,
-    left_lang   TEXT NOT NULL,
-    right_lang  TEXT NOT NULL,
+    left_lang   TEXT NOT NULL DEFAULT 'DE',
+    right_lang  TEXT NOT NULL DEFAULT 'EN-US',
     left_name   TEXT NOT NULL DEFAULT '',
     right_name  TEXT NOT NULL DEFAULT '',
     ended_at    TEXT,
@@ -53,10 +53,10 @@ CREATE TABLE IF NOT EXISTS turns (
     id          TEXT PRIMARY KEY,
     session_id  TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
     side        TEXT NOT NULL,
-    source      TEXT NOT NULL,
+    source      TEXT NOT NULL DEFAULT 'spoken',
     original    TEXT NOT NULL,
     translation TEXT NOT NULL DEFAULT '',
-    status      TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'done',
     edited      INTEGER NOT NULL DEFAULT 0,
     at          INTEGER NOT NULL,
     created_at  TEXT NOT NULL,

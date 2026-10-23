@@ -105,3 +105,24 @@ def test_a_changed_secret_signs_everybody_out(monkeypatch):
 def test_logging_in_without_a_password_set_says_so(client):
     r = client.post("/access/login", json={"password": "anything"})
     assert r.status_code == 200 and r.json() == {"required": False, "authenticated": True}
+
+
+def test_the_refused_request_is_not_cached(guarded):
+    """A cached 401 would keep the page locked after the password was given."""
+    r = guarded.get("/interpreter/sessions")
+    assert r.status_code == 401
+    assert r.headers["cache-control"] == "no-store"
+
+
+def test_the_cookie_is_secure_behind_https(guarded):
+    r = guarded.post("/access/login", json={"password": "open sesame"},
+                     headers={"x-forwarded-proto": "https"})
+    assert r.status_code == 200
+    assert "secure" in r.headers["set-cookie"].lower()
+
+
+def test_the_cookie_is_not_secure_on_plain_http(guarded):
+    """A secure cookie on http is dropped by the browser and nobody could sign in."""
+    r = guarded.post("/access/login", json={"password": "open sesame"})
+    assert r.status_code == 200
+    assert "secure" not in r.headers["set-cookie"].lower()

@@ -41,9 +41,11 @@ def test_long_text_is_split_and_comes_back_as_one_file(client, models, monkeypat
 
     assert r.status_code == 200, r.text
     assert len(models.speech_requests) > 1, "one request per part"
-    # Nothing was dropped on the way: every part of the text went out.
-    sent = "".join(req["input"] for req in models.speech_requests)
-    assert sent.replace(" ", "") == text.strip().replace(" ", "")
+    # Nothing was dropped and nothing reordered: the parts join back to the exact
+    # text in the order they went out. Each part goes out trimmed, so the one
+    # space at every sentence end is the separator here.
+    sent = " ".join(req["input"] for req in models.speech_requests)
+    assert sent == text.strip()
     # And the audio of every part is in the one file that comes back.
     assert r.content.count(MP3_PREFIX) > len(models.speech_requests)
 
@@ -109,3 +111,36 @@ def test_a_base_url_without_v1_still_finds_the_endpoint(server, monkeypatch):
 
     assert r.status_code == 200, r.text
     assert r.content.startswith(MP3_PREFIX)
+
+
+def test_without_a_voice_the_speech_feature_is_off(client, models, monkeypatch):
+    """Voice names differ per server, so a guessed default would fail on every press."""
+    monkeypatch.delenv("TTS_VOICE")
+
+    assert client.get("/config").json()["tts"] is False
+    r = client.post("/interpreter/speak", json={"text": "Guten Tag", "lang": "DE"})
+    assert r.status_code == 503, r.text
+    assert models.speech_requests == [], "nothing is asked of a server that would refuse it"
+
+
+def test_the_missing_voice_is_named_in_the_reason(monkeypatch):
+    from src import providers
+
+    monkeypatch.setenv("LLM_BASE_URL", "http://127.0.0.1:1/v1")
+    monkeypatch.setenv("TTS_MODEL", "tts-test")
+    monkeypatch.delenv("TTS_VOICE", raising=False)
+
+    assert providers.missing_reason("tts") == "TTS_VOICE is not set"
+
+
+def test_one_client_serves_more_than_one_request(client, models):
+    """A new client per request would open a new connection about once a second."""
+    from src import providers
+
+    client.post("/interpreter/speak", json={"text": "Eins", "lang": "DE"})
+    first = providers.make_tts_client(providers.resolve("tts"))
+    client.post("/interpreter/speak", json={"text": "Zwei", "lang": "DE"})
+    second = providers.make_tts_client(providers.resolve("tts"))
+
+    assert first is second
+    assert [r["input"] for r in models.speech_requests] == ["Eins", "Zwei"]

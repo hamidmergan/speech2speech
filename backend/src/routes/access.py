@@ -9,6 +9,12 @@ from src.i18n import get_locale, t
 router = APIRouter(tags=["access"])
 
 
+def _over_https(request: Request) -> bool:
+    """Whether the browser reached the page over https, proxy header included."""
+    forwarded = (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
+    return forwarded == "https" or request.url.scheme == "https"
+
+
 class PasswordIn(BaseModel):
     password: str = Field(min_length=1, max_length=512)
 
@@ -26,6 +32,7 @@ def access_state(request: Request) -> dict:
 @router.post("/access/login")
 def login(
     body: PasswordIn,
+    request: Request,
     response: Response,
     locale: str = Depends(get_locale),
 ) -> dict:
@@ -39,6 +46,9 @@ def login(
         value=access.make_token(),
         httponly=True,
         samesite="lax",
+        # On plain http a secure cookie would be dropped and nobody could sign in,
+        # so the flag follows the scheme the browser actually used.
+        secure=_over_https(request),
         max_age=access.COOKIE_MAX_AGE,
     )
     return {"required": True, "authenticated": True}

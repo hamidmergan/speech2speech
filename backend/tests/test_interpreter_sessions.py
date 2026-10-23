@@ -191,3 +191,27 @@ def test_a_turn_id_of_another_conversation_is_refused(client):
     kept = client.get(f"/interpreter/sessions/{b}").json()["turns"]
     assert [(t["original"], t["side"]) for t in kept] == [("Sentence of B", "left")]
     assert client.get(f"/interpreter/sessions/{a}").json()["turns"] == []
+
+
+def test_the_stored_time_carries_its_offset(client):
+    """Offsetless stamps were read by the browser as its own local time, and the
+    container has no time zone of its own."""
+    from datetime import datetime, timezone
+
+    created = client.post("/interpreter/sessions", json={}).json()["created_at"]
+
+    parsed = datetime.fromisoformat(created)
+    assert parsed.tzinfo is not None, created
+    assert parsed.utcoffset().total_seconds() == 0
+    # And it really is now, not a local clock labelled UTC.
+    assert abs((datetime.now(timezone.utc) - parsed).total_seconds()) < 60
+
+
+def test_the_list_hands_both_times_over_with_an_offset(client):
+    from datetime import datetime
+
+    client.post("/interpreter/sessions", json={})
+    entry = client.get("/interpreter/sessions").json()["sessions"][0]
+
+    for field in ("created_at", "updated_at"):
+        assert datetime.fromisoformat(entry[field]).tzinfo is not None, entry[field]

@@ -155,10 +155,13 @@ def clean_env(monkeypatch, tmp_path):
             monkeypatch.delenv(name)
     monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
 
-    from src import database
+    from src import database, providers
     database.reset_for_tests()
+    # The clients hold a connection pool to the fake server of the previous test.
+    providers.forget_clients()
     yield
     database.reset_for_tests()
+    providers.forget_clients()
 
 
 @pytest.fixture

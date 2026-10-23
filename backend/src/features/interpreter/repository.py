@@ -2,7 +2,7 @@
 
 import sqlite3
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.database import get_connection
 from src.limits import max_sessions
@@ -165,4 +165,10 @@ def list_turns(session_id: str) -> list[dict]:
 
 
 def now() -> datetime:
-    return datetime.now()
+    """UTC with the offset in it.
+
+    The container has no time zone of its own and the browser is wherever the
+    user is. An offsetless stamp is read by the browser as its own local time,
+    so a conversation finished ten minutes ago showed up hours in the past.
+    """
+    return datetime.now(timezone.utc)

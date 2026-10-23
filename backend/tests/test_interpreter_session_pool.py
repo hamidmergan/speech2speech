@@ -1,6 +1,6 @@
 """The pool of conversations: the newest MAX_SESSIONS stay, the one untouched longest drops out."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 
@@ -20,8 +20,12 @@ def _create(name: str) -> str:
 
 
 def _touched(session_id: str, minutes_ago: int) -> None:
-    """Sets how long ago a conversation was last used, the pool sorts by that."""
-    when = (datetime.now() - timedelta(minutes=minutes_ago)).isoformat()
+    """Sets how long ago a conversation was last used, the pool sorts by that.
+
+    Through repo.now, so the stamp carries the same UTC offset the store writes.
+    The sort is lexicographic, and two different offsets would not compare.
+    """
+    when = (repo.now() - timedelta(minutes=minutes_ago)).isoformat()
     with get_connection() as conn:
         conn.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (when, session_id))
         conn.commit()

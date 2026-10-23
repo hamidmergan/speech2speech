@@ -62,12 +62,6 @@ def create_app() -> FastAPI:
     application = FastAPI(title="speech2speech", lifespan=lifespan)
 
     @application.middleware("http")
-    async def no_cache(request: Request, call_next) -> Response:
-        response = await call_next(request)
-        response.headers["Cache-Control"] = "no-store"
-        return response
-
-    @application.middleware("http")
     async def access_gate(request: Request, call_next) -> Response:
         """With a password set, every other route wants the signed cookie."""
         if request.method == "OPTIONS" or not access.required():
@@ -78,6 +72,14 @@ def create_app() -> FastAPI:
             return await call_next(request)
         locale = parse_accept_language(request.headers.get("accept-language"))
         return JSONResponse(status_code=401, content={"detail": t("access.needed", locale)})
+
+    # Registered last, so this is the outer middleware and the 401 the gate
+    # answers with carries the header too. A cached 401 would lock the page out.
+    @application.middleware("http")
+    async def no_cache(request: Request, call_next) -> Response:
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     # Allow direct browser requests, bypassing the page's own proxy.
     application.add_middleware(

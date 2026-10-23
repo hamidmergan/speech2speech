@@ -68,7 +68,7 @@ class OpenAICompatTTSClient:
         text: str,
         language: str = "",
         *,
-        voice_id: str = "default",
+        voice_id: str,
         speed: float = 1.0,
         **kwargs,
     ) -> bytes:
@@ -87,14 +87,14 @@ class OpenAICompatTTSClient:
         self,
         text: str,
         *,
-        voice_id: str = "default",
+        voice_id: str,
         speed: float = 1.0,
         language: str = "",
     ) -> bytes:
         text = " ".join(line.strip() for line in text.splitlines() if line.strip())
         # Digits would otherwise sound German, the voice guesses its language from the text.
         text = spell_numbers(text, language)
-        if not voice_id or voice_id == "default":
+        if not voice_id:
             raise ValueError("voice_id must be set, see TTS_VOICE")
         voice = voice_id
         # No tempo goes out, a voice slowed down by the provider echoes.

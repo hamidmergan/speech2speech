@@ -181,3 +181,24 @@ def test_a_reset_reaches_the_worker_threads_too(worker, tmp_path, monkeypatch):
     _write("second", "Second")
 
     assert worker.run(_names) == ["Second"]
+
+
+def test_the_columns_carry_the_defaults_of_the_schema():
+    """A write that leaves a column out gets the documented value, not an error."""
+    database.init_db()
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO sessions (id, created_at, updated_at) VALUES ('s', ?, ?)",
+            (STAMP, STAMP),
+        )
+        conn.execute(
+            """INSERT INTO turns (id, session_id, side, original, at, created_at, updated_at)
+               VALUES ('t', 's', 'left', 'Guten Tag', 1000, ?, ?)""",
+            (STAMP, STAMP),
+        )
+        conn.commit()
+        session = conn.execute("SELECT * FROM sessions WHERE id = 's'").fetchone()
+        turn = conn.execute("SELECT * FROM turns WHERE id = 't'").fetchone()
+
+    assert (session["left_lang"], session["right_lang"]) == ("DE", "EN-US")
+    assert (turn["source"], turn["status"]) == ("spoken", "done")
