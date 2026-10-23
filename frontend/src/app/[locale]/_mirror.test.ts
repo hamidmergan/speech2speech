@@ -18,8 +18,8 @@ function setup() {
 
 afterEach(() => vi.useRealTimers());
 
-describe("Spiegel zum Server", () => {
-  it("schickt den ersten Stand sofort und danach nur den neuesten, einen pro Sekunde", async () => {
+describe("mirror to the server", () => {
+  it("sends the first version at once and then only the newest, one a second", async () => {
     vi.useFakeTimers();
     const { sent, resolvers, mirror } = setup();
     mirror.push(turn("a", "G"));
@@ -34,14 +34,14 @@ describe("Spiegel zum Server", () => {
     expect(sent).toEqual(["a:G", "a:Gut"]);
   });
 
-  it("hält zwei Sätze auseinander", () => {
+  it("keeps two sentences apart", () => {
     const { sent, mirror } = setup();
     mirror.push(turn("a", "Hallo"));
     mirror.push(turn("b", "Hello"));
     expect(sent).toEqual(["a:Hallo", "b:Hello"]);
   });
 
-  it("flush schickt alles, was noch wartet, und wartet auf die Antwort", async () => {
+  it("flush sends everything still waiting and waits for the answer", async () => {
     vi.useFakeTimers();
     const { sent, resolvers, mirror } = setup();
     mirror.push(turn("a", "G"));
@@ -57,7 +57,7 @@ describe("Spiegel zum Server", () => {
     expect(done).toBe(true);
   });
 
-  it("cancel lässt fallen, was noch wartet", async () => {
+  it("cancel drops what is still waiting", async () => {
     vi.useFakeTimers();
     const { sent, resolvers, mirror } = setup();
     mirror.push(turn("a", "G"));

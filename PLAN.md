@@ -38,7 +38,25 @@ sentences can be corrected afterwards.
 - [x] 3 Frontend: the conversation page, recording, two sides, history, read aloud.
 - [x] 4 `docker compose up`, a conversation held in the browser against real models.
 - [x] 5 README and CHANGELOG.
-- [ ] 6 English sweep, final commit.
+- [x] 6 English sweep, final commit.
+
+## The English sweep
+
+Everything in the repo is English: identifiers, comments, logs, test names and
+test data. Three places stay German on purpose, because German users read them:
+the `"de"` entries of `backend/src/i18n.py`, the German half of
+`frontend/src/app/[locale]/_cardTexts.ts`, and the German fallback sentences in
+`frontend/src/lib/api.ts`. Two more are German on purpose because they are the
+input of a translation test: the German sentences in `test_interpreter_route.py`
+and `test_speak.py`, and the two words in `_limits.test.ts` whose length is
+asserted.
+
+The sweep was done file by file, never by a search and replace over the tree.
+Every rename in `tts_number_words.py` was checked against the source by diffing
+every string literal and every number in the file: only the one log message
+changed. The same check on `globals.css` showed all 203 colour values and numbers
+unchanged. No string that is matched against input or shown to a person was
+touched.
 
 ## Open
 

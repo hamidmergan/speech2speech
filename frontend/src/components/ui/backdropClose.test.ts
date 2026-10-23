@@ -3,58 +3,58 @@ import { describe, expect, it } from "vitest";
 import { backdropClose, newBackdropPress } from "./backdropClose";
 
 /** An event as React delivers it: what was pressed and where the handle sits. */
-function ereignis(target: unknown, currentTarget: unknown) {
+function event(target: unknown, currentTarget: unknown) {
   return { target, currentTarget } as never;
 }
 
-const HINTERGRUND = { name: "hintergrund" };
-const FELD = { name: "eingabefeld" };
+const BACKDROP = { name: "backdrop" };
+const FIELD = { name: "input field" };
 
 describe("backdropClose", () => {
-  it("schliesst beim Klick auf den Hintergrund", () => {
-    let zu = false;
-    const h = backdropClose(newBackdropPress(), () => { zu = true; });
-    h.onMouseDown(ereignis(HINTERGRUND, HINTERGRUND));
-    h.onClick(ereignis(HINTERGRUND, HINTERGRUND));
-    expect(zu).toBe(true);
+  it("closes on a click on the backdrop", () => {
+    let closed = false;
+    const h = backdropClose(newBackdropPress(), () => { closed = true; });
+    h.onMouseDown(event(BACKDROP, BACKDROP));
+    h.onClick(event(BACKDROP, BACKDROP));
+    expect(closed).toBe(true);
   });
 
-  it("bleibt offen, wenn das Markieren im Feld begann und daneben endete", () => {
+  it("stays open when a selection began in a field and ended beside it", () => {
     // Exactly the annoying case: the click lands on the shared parent.
-    let zu = false;
-    const h = backdropClose(newBackdropPress(), () => { zu = true; });
-    h.onMouseDown(ereignis(FELD, HINTERGRUND));
-    h.onClick(ereignis(HINTERGRUND, HINTERGRUND));
-    expect(zu).toBe(false);
+    let closed = false;
+    const h = backdropClose(newBackdropPress(), () => { closed = true; });
+    h.onMouseDown(event(FIELD, BACKDROP));
+    h.onClick(event(BACKDROP, BACKDROP));
+    expect(closed).toBe(false);
   });
 
-  it("bleibt offen, wenn der Klick den Inhalt trifft", () => {
-    let zu = false;
-    const h = backdropClose(newBackdropPress(), () => { zu = true; });
-    h.onMouseDown(ereignis(FELD, HINTERGRUND));
-    h.onClick(ereignis(FELD, HINTERGRUND));
-    expect(zu).toBe(false);
+  it("stays open when the click lands on the content", () => {
+    let closed = false;
+    const h = backdropClose(newBackdropPress(), () => { closed = true; });
+    h.onMouseDown(event(FIELD, BACKDROP));
+    h.onClick(event(FIELD, BACKDROP));
+    expect(closed).toBe(false);
   });
 
-  it("vergisst den vorherigen Griff nicht bis zum naechsten Druck", () => {
+  it("does not forget the previous grab until the next press", () => {
     // After a selection a real click outside has to close again.
-    let zu = 0;
+    let closed = 0;
     const press = newBackdropPress();
-    const h = backdropClose(press, () => { zu += 1; });
-    h.onMouseDown(ereignis(FELD, HINTERGRUND));
-    h.onClick(ereignis(HINTERGRUND, HINTERGRUND));
-    h.onMouseDown(ereignis(HINTERGRUND, HINTERGRUND));
-    h.onClick(ereignis(HINTERGRUND, HINTERGRUND));
-    expect(zu).toBe(1);
+    const h = backdropClose(press, () => { closed += 1; });
+    h.onMouseDown(event(FIELD, BACKDROP));
+    h.onClick(event(BACKDROP, BACKDROP));
+    h.onMouseDown(event(BACKDROP, BACKDROP));
+    h.onClick(event(BACKDROP, BACKDROP));
+    expect(closed).toBe(1);
   });
 
-  it("schliesst nicht, solange es abgeschaltet ist", () => {
+  it("does not close while it is switched off", () => {
     // For dialogs that must not go away while saving.
-    let zu = false;
+    let closed = false;
     const press = newBackdropPress();
-    const h = backdropClose(press, () => { zu = true; }, false);
-    h.onMouseDown(ereignis(HINTERGRUND, HINTERGRUND));
-    h.onClick(ereignis(HINTERGRUND, HINTERGRUND));
-    expect(zu).toBe(false);
+    const h = backdropClose(press, () => { closed = true; }, false);
+    h.onMouseDown(event(BACKDROP, BACKDROP));
+    h.onClick(event(BACKDROP, BACKDROP));
+    expect(closed).toBe(false);
   });
 });

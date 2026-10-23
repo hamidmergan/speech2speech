@@ -15,8 +15,8 @@ function setup(gap = 1000) {
 
 afterEach(() => vi.useRealTimers());
 
-describe("Live-Übersetzung", () => {
-  it("schickt nur eine Anfrage auf einmal und danach den neuesten Stand", async () => {
+describe("live translation", () => {
+  it("sends one request at a time and then the newest text", async () => {
     vi.useFakeTimers();
     const { calls, resolvers, results, live } = setup();
     live.schedule("Guten");
@@ -33,7 +33,7 @@ describe("Live-Übersetzung", () => {
     expect(calls).toEqual(["Guten", "Guten Tag, worum"]);
   });
 
-  it("verwirft nach dem Abbruch jede Antwort, die noch unterwegs war", async () => {
+  it("drops every answer still on its way after a cancel", async () => {
     vi.useFakeTimers();
     const { resolvers, results, live } = setup();
     live.schedule("Hallo");
@@ -43,7 +43,7 @@ describe("Live-Übersetzung", () => {
     expect(results).toEqual([]);
   });
 
-  it("ignoriert leeren Text", () => {
+  it("ignores empty text", () => {
     const { calls, live } = setup();
     live.schedule("   ");
     expect(calls).toEqual([]);

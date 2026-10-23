@@ -169,13 +169,12 @@
   --scrollbar-color: #d8d8d8;
   --tooltip-bg:      #1a1a1a;
   --tooltip-fg:      #ffffff;
-  --header-bg:       #004261;   /* Brand-Header bleibt Blau in beiden Modi */
+  --header-bg:       #004261;   /* The brand header stays blue in both modes */
   --header-fg:       #ffffff;
-  --on-accent:       #ffffff;   /* Text/Icon auf --kb-Hintergrund */
+  --on-accent:       #ffffff;   /* Text and icons on a --kb background */
 
-  /* Generisches Badge-Palette-System (Light)
-     Konsumiert in workspace/_constants.ts und SubviewHeader.tsx.
-     Hellpastell-BG + saturierte dunkle Schrift. */
+  /* Badge palette (light)
+     Pale pastel background, saturated dark text. */
   --badge-amber-bg:   rgba(245,235,220,0.7);  --badge-amber-fg:   #78350F;
   --badge-emerald-bg: rgba(220,252,231,0.7);  --badge-emerald-fg: #166534;
   --badge-yellow-bg:  rgba(254,249,195,0.7);  --badge-yellow-fg:  #A16207;
@@ -193,10 +192,10 @@
    Activated via <html data-theme="dark"> (set by useTheme plus the FOUC
    inline script in layout.tsx). Overrides all :root values. */
 :root[data-theme="dark"] {
-  /* Native UI (date-picker icon, scrollbars etc.) im Dark Mode rendern */
+  /* Render native UI (date picker icon, scrollbars and so on) in dark mode */
   color-scheme: dark;
 
-  /* Brand — identisch zu Light (THL-Original), keine Aufhellung */
+  /* Brand, the same as in light mode, not lightened */
   --kb:           #004261;
   --kb-rgb:       0, 66, 97;
   --kb-dark:      #7BBDE5;
@@ -204,13 +203,13 @@
   --kb60:         #4F7A91;
   --kb20:         #1C2A33;
 
-  /* Neutrals — Deep Slate (fast schwarz, minimaler Blau-Tint) */
+  /* Neutrals, deep slate: nearly black with a minimal blue tint */
   --background:      #0A0B0D;
   --surface:         #141519;
   --surface-dim:     #1C1D22;
   --border-soft:     #23252B;
   --border:          #2A2C32;
-  /* aufgehellt: 3,7:1 bzw. 5,1:1 auf --surface-dim waren zu wenig */
+  /* Lightened: 3.7:1 and 5.1:1 on --surface-dim were not enough */
   --muted-soft:      #85888F;
   --muted:           #9A9DA6;
   --foreground-soft: #ffffff;
@@ -254,10 +253,10 @@
   --scrollbar-color: #3A3C42;
   --tooltip-bg:      #F5F5F7;
   --tooltip-fg:      #0A0B0D;
-  --header-bg:       #141519;   /* Dark Mode: Header = --surface (leicht abgesetzt vom Content-BG) */
-  /* --header-fg / --on-accent bleiben weiss */
+  --header-bg:       #141519;   /* Dark mode: the header is --surface, a step away from the content background */
+  /* --header-fg and --on-accent stay white */
 
-  /* Badge-Palette (Dark) — gedaempfte BG (~30% alpha auf saturem Ton), heller Text */
+  /* Badge palette (dark): muted background at about 30% alpha over a saturated tone, light text */
   --badge-amber-bg:   rgba(120,53,15,0.30);   --badge-amber-fg:   #FCD9B0;
   --badge-emerald-bg: rgba(22,101,52,0.30);   --badge-emerald-fg: #A8E6BC;
   --badge-yellow-bg:  rgba(161,98,7,0.30);    --badge-yellow-fg:  #FDE68A;
@@ -276,7 +275,8 @@
   color: var(--foreground) !important;
 }
 
-/* Unified Abbrechen-Button: Outline permanent 2px (Layout-stabil), default transparent → Hover Outline #004261. Light: Schrift unveraendert. Dark: Schrift bleibt weiss. */
+/* One cancel button: a permanent 2px outline keeps the layout stable, transparent by
+   default and #004261 on hover. The text stays as it is in light mode and white in dark mode. */
 .btn-cancel {
   outline: 2px solid transparent;
   outline-offset: -2px;

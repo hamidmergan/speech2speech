@@ -6,8 +6,8 @@ function clock(start = 1000) {
   return { now: () => t, advance: (ms: number) => (t += ms) };
 }
 
-describe("Stimme am Mikrofon", () => {
-  it("merkt sich eine Stimme und vergisst sie nach dem Abholen", () => {
+describe("voice at the microphone", () => {
+  it("remembers a voice and forgets it once it is taken", () => {
     const tracker = createVoiceTracker();
     expect(tracker.takeHeard()).toBe(false);
     tracker.sample(SPEECH_LEVEL * 2);
@@ -15,7 +15,7 @@ describe("Stimme am Mikrofon", () => {
     expect(tracker.takeHeard()).toBe(false);
   });
 
-  it("zählt leise Werte nicht als Stimme", () => {
+  it("does not count quiet values as a voice", () => {
     const tracker = createVoiceTracker();
     tracker.sample(SPEECH_LEVEL / 2);
     tracker.sample(0);
@@ -23,7 +23,7 @@ describe("Stimme am Mikrofon", () => {
     expect(tracker.everHeard()).toBe(false);
   });
 
-  it("zählt die Stille ab der letzten Stimme", () => {
+  it("counts the silence from the last voice on", () => {
     const c = clock();
     const tracker = createVoiceTracker(c.now);
     c.advance(5000);
