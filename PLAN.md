@@ -33,7 +33,7 @@ sentences can be corrected afterwards.
       `docker-compose.yml` with two services, `.env.example`.
 - [x] 1 Backend: SQLite repository, service, routes, translation, transcription and
       speech output through `providers.py`, access through `ACCESS_PASSWORD`.
-- [ ] 2 Backend tests against a fake model server: sessions, correcting sentences,
+- [x] 2 Backend tests against a fake model server: sessions, correcting sentences,
       limits, password protection.
 - [ ] 3 Frontend: the conversation page, recording, two sides, history, read aloud.
 - [ ] 4 `docker compose up`, a conversation held in the browser against real models.
@@ -60,6 +60,9 @@ sentences can be corrected afterwards.
 - The batch path of the translation client is not carried. One spoken sentence at
   a time never batches. With it went the numbered list prompt, the parser for that
   list, the per item fallback and the two constants that sized a chunk.
+- There are no accounts, so a conversation belongs to the installation. The test
+  that proved one person could not see another person's conversation went with the
+  owner column it checked.
 - The target language reaches the model as a name, "German" or "English", not as
   the code the page sends. The source handed the code straight to the prompt
   because the same interface also served a translation API that wanted codes.
