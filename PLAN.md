@@ -39,6 +39,8 @@ sentences can be corrected afterwards.
 - [x] 4 `docker compose up`, a conversation held in the browser against real models.
 - [x] 5 README and CHANGELOG.
 - [x] 6 English sweep, final commit.
+- [x] 7 Review round: the findings of the review worked through, each with a test
+      that fails without the change.
 
 ## The English sweep
 
@@ -57,6 +59,52 @@ every string literal and every number in the file: only the one log message
 changed. The same check on `globals.css` showed all 203 colour values and numbers
 unchanged. No string that is matched against input or shown to a person was
 touched.
+
+## Deliberate deviations from the source
+
+- The translation prompt is rewritten. The source prompt was written for written
+  lecture material: it asked for a formal register, which turned every casual
+  spoken sentence into a stiff one, and it carried a rule about a
+  `__GLOSSARY_<number>__` token that cannot appear here, because the glossary is
+  not carried. It also still described the content as academic and university
+  material. The new prompt names a spoken conversation, asks the model to keep
+  the register of the speaker and has no glossary rule.
+- Timestamps are stored as UTC with an offset. The source stored a naive
+  timestamp in a Postgres `TIMESTAMP` column. The browser reads an offsetless
+  date-time as its own local time, and the container has no time zone of its
+  own, so a conversation finished ten minutes ago appeared hours in the past.
+- The upsert of a sentence is scoped to its conversation. The source scoped
+  everything by `owner_id`, which is gone with the accounts, so without this
+  every conversation on the installation would share one id space.
+- `TTS_VOICE` has no default. The source read the voice from a settings table
+  with a provider that knew its own voices. Here a guessed name means a read
+  aloud button that answers 502 on every press.
+- The ceiling of a single sentence is 4000 characters on every route. The source
+  allowed 2000 for a translation and 4000 for a stored turn, so a long spoken
+  sentence could be stored and then never translated.
+- The access cookie carries `secure` wherever the browser used https. The source
+  sat behind a reverse proxy that set the flag.
+
+## Known properties
+
+Faithful to the source and kept on purpose, so a later reader does not take them
+for an oversight.
+
+- Only the sentence currently on a card can be corrected. The server takes a
+  correction of any sentence, but once the other side speaks, your sentence
+  moves into the history list, which has no edit field. The README says so now.
+- `synchronous = NORMAL` in WAL mode survives a crash of the process but does
+  not flush on every commit, so a power cut can cost the newest transactions.
+  The comment in `database.py` says this rather than promising durability.
+- Writers serialize. SQLite takes one writer at a time, which is the right shape
+  for two people on one device, and readers never wait.
+- The sentence end search in the speech splitter takes the first punctuation
+  kind it finds, not the position nearest the middle.
+- The eviction query sorts by `updated_at DESC, id DESC`. The extra tiebreaker
+  is harmless and makes the order stable when two conversations share a stamp.
+- A part of a long text goes to the speech endpoint trimmed, so the one space at
+  a sentence end is not inside any request. The parts are joined as audio, where
+  that space has no sound.
 
 ## Open
 
@@ -82,9 +130,6 @@ touched.
   page and its test covers the access password instead. `src/lib/browserStore.ts`
   keeps only the preferences key, the workspace and per person keys went with the
   features that used them.
-- The translation prompt is carried unchanged from the source tool, including its
-  formal register. It was written for written material, and a spoken conversation
-  comes back a little more formal than it went in.
 - The batch path of the translation client is not carried. One spoken sentence at
   a time never batches. With it went the numbered list prompt, the parser for that
   list, the per item fallback and the two constants that sized a chunk.

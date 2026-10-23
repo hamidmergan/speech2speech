@@ -20,7 +20,9 @@ It currently speaks:
   - a **chat model**, required. It does the translating.
   - a **speech to text model** (Whisper style), required for talking. Without it
     the page still translates what you type and says that the microphone has no model.
-  - a **text to speech model**, optional. Without it the page shows no read aloud button.
+  - a **text to speech model**, optional. It needs `TTS_MODEL` and `TTS_VOICE`
+    together. Voice names differ from server to server, so there is no default
+    and without both the page shows no read aloud button.
 - An API key is optional. Many self-hosted servers do not need one.
 - A browser only grants microphone access on **https or on localhost**. On a plain
   http address from another machine the Speak button cannot open the microphone,
@@ -69,8 +71,10 @@ card follows along. Press Done, or the other side presses Speak and takes over.
 
 Typing works too: write into your card and press Enter.
 
-A sentence that came out wrong can be corrected in the field afterwards. The
-translation is made again, and the conversation marks the sentence as corrected.
+A sentence that came out wrong can be corrected in the field while it is still
+on a card. The translation is made again, and the conversation marks the
+sentence as corrected. Once the other side has spoken, your sentence moves into
+the history below the cards and is read only there.
 
 The three buttons at the top:
 
@@ -94,6 +98,30 @@ SESSION_SECRET=a long random string
 Everybody then enters the same password once. The cookie is signed, nothing is
 stored, and changing the password or the secret signs everybody out.
 
+## Web UI
+
+The page is the whole tool, there is no command line. Open
+http://localhost:3100, give the two people a name and a language, and talk. What
+the installation can do is read from the backend, so the page shows a read aloud
+button only where a speech model is set up, and says so where a model is
+missing. The settings live in `.env`, not on the page.
+
+## Docker
+
+`docker compose up -d` builds and starts both containers:
+
+- `speech2speech-backend`, the API and the SQLite file, on `127.0.0.1:8100`
+- `speech2speech-frontend`, the page, on `127.0.0.1:3100`
+
+Both ports are bound to localhost. The conversations live in the named volume
+`data`, so `docker compose down` keeps them and `docker compose down -v` removes
+them. The backend runs as a non root user and one web process, because SQLite
+takes one writer at a time. A model server on the host is reachable from the
+containers as `http://host.docker.internal:11434/v1`.
+
+`.env` is optional for compose. Without one the stack still starts and the
+backend logs which variable is missing.
+
 ## Settings
 
 Everything is read from the environment, so `.env` is the one place. Base URL and
@@ -107,17 +135,21 @@ API key fall back to the `LLM_*` values, the model never does.
 | `STT_MODEL` | speech to text model | none, microphone off without it |
 | `STT_BASE_URL` / `STT_API_KEY` | its own endpoint | falls back to `LLM_*` |
 | `TTS_MODEL` | text to speech model | none, read aloud off without it |
-| `TTS_VOICE` | voice the endpoint knows | `alloy` |
+| `TTS_VOICE` | voice the endpoint knows | none, read aloud off without it |
 | `TTS_BASE_URL` / `TTS_API_KEY` | its own endpoint | falls back to `LLM_*` |
 | `ACCESS_PASSWORD` | one password for the whole page | none, page is open |
 | `SESSION_SECRET` | signs the access cookie | derived from the password |
-| `DATA_DIR` | folder of the SQLite file | `/data` in Docker |
+| `DATA_DIR` | folder of the SQLite file, local disk only | `/data` in Docker |
 | `MAX_SESSIONS` | conversations kept at once | 100 |
 | `SESSION_CHAR_LIMIT` | characters one conversation may collect | 20000 |
 | `MAX_AUDIO_BYTES` | largest recording one request may carry | 31457280 (30 MB) |
 | `TTS_MAX_CHARS_PER_REQUEST` | characters per request to the speech model | 400 |
 | `FRONTEND_PORT` / `BACKEND_PORT` | published ports | 3100 / 8100 |
-| `CORS_ORIGINS` | browser origins the API accepts | `http://localhost:3100` |
+| `CORS_ORIGINS` | browser origins the API accepts | `http://localhost:3100,http://localhost:3000` |
+
+`DATA_DIR` wants a local folder or a Docker volume. SQLite writes ahead of the
+file in shared memory, which an NFS or SMB mount cannot provide, so the database
+does not work on a network share.
 
 If a limit is reached, it is said out loud. A recording over `MAX_AUDIO_BYTES` is
 refused with a message naming what happened, and the page stops the recording
